@@ -412,7 +412,7 @@ export function OraclePortal({ cardImages = "{}" }) {
   const showClose   = showUI || showReading
 
   return (
-    <div style={{ position: "relative", display: "inline-block" }}>
+    <div style={{ position: "relative", display: "inline-block", zIndex: 10000 }}>
       {/* Nav trigger */}
       <span
         ref={triggerRef}
