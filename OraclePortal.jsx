@@ -294,7 +294,7 @@ export function OraclePortal({ cardImages = "{}" }) {
     display:         "flex",
     alignItems:      "center",
     justifyContent:  "center",
-    overflowY:       "auto",
+    overflowY:       "hidden",
   }
 
   // ── Nav handlers ───────────────────────────────────────────────────────────
@@ -605,35 +605,51 @@ function ReadingUI({
       style={{
         display:        "flex",
         flexDirection:  "column",
-        alignItems:     "center",
-        gap:             52,
-        maxWidth:        960,
+        height:         "100vh",
         width:          "100%",
-        padding:        "72px 24px 52px",
+        maxWidth:        960,
+        padding:        "48px 24px 0",
       }}
     >
-      {/* Spread */}
+      {/* Top section — fixed, no scroll */}
       <div
         style={{
-          display:        "flex",
-          gap:            "clamp(16px, 3vw, 44px)",
-          justifyContent: "center",
-          flexWrap:       "wrap",
-          alignItems:     "flex-start",
+          flexShrink:     0,
+          paddingBottom:  32,
         }}
       >
-        {cards.map((drawn, i) => (
-          <CardTile
-            key={drawn.card.name}
-            drawn={drawn}
-            visible={visibleCards > i}
-            imageUrl={getImageUrl(drawn.card, drawn.reversed)}
-          />
-        ))}
+        {/* Spread */}
+        <div
+          style={{
+            display:        "flex",
+            gap:            "clamp(16px, 3vw, 44px)",
+            justifyContent: "center",
+            flexWrap:       "wrap",
+            alignItems:     "flex-start",
+          }}
+        >
+          {cards.map((drawn, i) => (
+            <CardTile
+              key={drawn.card.name}
+              drawn={drawn}
+              visible={visibleCards > i}
+              imageUrl={getImageUrl(drawn.card, drawn.reversed)}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Narrative */}
-      <NarrativeBlock text={narrative} visible={showNarrative} />
+      {/* Bottom section — scrollable narrative */}
+      <div
+        style={{
+          overflowY:    "auto",
+          flexGrow:      1,
+          paddingBottom: 48,
+          borderTop:    "1px solid #2A2A2A",
+        }}
+      >
+        <NarrativeBlock text={narrative} visible={showNarrative} />
+      </div>
     </div>
   )
 }
@@ -732,7 +748,8 @@ function NarrativeBlock({ text, visible }) {
     <div
       style={{
         maxWidth:   680,
-        textAlign:  "center",
+        textAlign:  "left",
+        padding:    "0 24px",
         opacity:    visible ? 1 : 0,
         transform:  visible ? "translateY(0)" : "translateY(14px)",
         transition: "opacity 1.1s ease, transform 1.1s ease",
@@ -742,11 +759,13 @@ function NarrativeBlock({ text, visible }) {
         <p
           key={i}
           style={{
-            fontFamily: "'IM Fell English', serif",
-            fontStyle:  "italic",
-            fontSize:   "clamp(15px, 2vw, 18px)",
-            lineHeight:  1.8,
+            fontFamily: "Inter, sans-serif",
+            fontStyle:  "normal",
+            fontWeight:  500,
+            fontSize:   "12pt",
+            lineHeight:  1.5,
             color:       COLORS.primary,
+            textAlign:  "left",
             margin:      i === 0 ? 0 : "1.5em 0 0",
           }}
         >
