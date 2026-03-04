@@ -228,8 +228,9 @@ export function OraclePortal({ cardImages = "{}" }) {
   const [showNarrative, setShowNarrative] = useState(false)
   const [imageMap, setImageMap]           = useState({})
 
-  const locked    = useRef(false)  // true once overlay is committed (clicked)
-  const timerRefs = useRef([])
+  const locked      = useRef(false)  // true once overlay is committed (clicked)
+  const timerRefs   = useRef([])
+  const triggerRef  = useRef(null)
 
   function clearTimers() {
     timerRefs.current.forEach(clearTimeout)
@@ -250,7 +251,25 @@ export function OraclePortal({ cardImages = "{}" }) {
       setImageMap(parsed)
     } catch {}
 
-    return clearTimers
+    function onMouseMove(e) {
+      const el = triggerRef.current
+      if (!el) return
+      const { top, bottom, left, right } = el.getBoundingClientRect()
+      const over =
+        e.clientX >= left && e.clientX <= right &&
+        e.clientY >= top  && e.clientY <= bottom
+      if (over) {
+        if (!locked.current) setPhase((p) => p === "idle" ? "hovering" : p)
+      } else {
+        if (!locked.current) setPhase((p) => p === "hovering" ? "idle" : p)
+      }
+    }
+
+    document.addEventListener("mousemove", onMouseMove)
+    return () => {
+      document.removeEventListener("mousemove", onMouseMove)
+      clearTimers()
+    }
   }, [cardImages])
 
   // ── Overlay CSS values ─────────────────────────────────────────────────────
@@ -279,16 +298,6 @@ export function OraclePortal({ cardImages = "{}" }) {
   }
 
   // ── Nav handlers ───────────────────────────────────────────────────────────
-  const onEnter = useCallback(() => {
-    if (locked.current) return
-    setPhase("hovering")
-  }, [])
-
-  const onLeave = useCallback(() => {
-    if (locked.current) return
-    setPhase("idle")
-  }, [])
-
   const onClick = useCallback(() => {
     if (locked.current) return
     locked.current = true
@@ -406,8 +415,7 @@ export function OraclePortal({ cardImages = "{}" }) {
     <div style={{ position: "relative", display: "inline-block" }}>
       {/* Nav trigger */}
       <span
-        onMouseEnter={onEnter}
-        onMouseLeave={onLeave}
+        ref={triggerRef}
         onClick={onClick}
         style={triggerStyle}
       >
