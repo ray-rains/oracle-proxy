@@ -69,7 +69,8 @@ const EASTER_EGG_KEYWORDS = [
 // Moon (18), Hermit (9), Wheel of Fortune (10) — always upright for easter egg
 const EASTER_EGG_INDICES = [18, 9, 10]
 
-const SESSION_KEY = "oracle_reading"
+const SESSION_KEY        = "oracle_reading"
+const SESSION_REROLL_KEY = "oracle_reroll"
 const PROXY_URL   =
   "https://oracle-proxy-63hohlnl9-ray-rains-projects.vercel.app/api/reading"
 
@@ -186,6 +187,19 @@ function saveStored(reading) {
   try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(reading)) } catch {}
 }
 
+function loadStoredReroll() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_REROLL_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function saveStoredReroll(reading) {
+  try { sessionStorage.setItem(SESSION_REROLL_KEY, JSON.stringify(reading)) } catch {}
+}
+
 // ─── Global Keyframes ─────────────────────────────────────────────────────────
 
 const KEYFRAMES = `
@@ -227,6 +241,15 @@ export function OraclePortal({ cardImages = "{}" }) {
   const [visibleCards, setVisibleCards]   = useState(0)
   const [showNarrative, setShowNarrative] = useState(false)
   const [imageMap, setImageMap]           = useState({})
+
+  const [hasRerolled,         setHasRerolled]         = useState(false)
+  const [rerollCards,         setRerollCards]         = useState(null)
+  const [rerollNarrative,     setRerollNarrative]     = useState("")
+  const [rerollVisibleCards,  setRerollVisibleCards]  = useState(0)
+  const [showRerollNarrative, setShowRerollNarrative] = useState(false)
+  const [rerollInput,         setRerollInput]         = useState("")
+  const [showRerollInput,     setShowRerollInput]     = useState(false)
+  const [rerollLoading,       setRerollLoading]       = useState(false)
 
   const locked      = useRef(false)  // true once overlay is committed (clicked)
   const timerRefs   = useRef([])
@@ -308,6 +331,17 @@ export function OraclePortal({ cardImages = "{}" }) {
       setCards(stored.cards)
       setNarrative(stored.narrative)
       setUserInput(stored.input)
+
+      const storedReroll = loadStoredReroll()
+      if (storedReroll) {
+        setRerollCards(storedReroll.cards)
+        setRerollNarrative(storedReroll.narrative)
+        setRerollInput(storedReroll.input)
+        setHasRerolled(true)
+        setRerollVisibleCards(3)
+        setShowRerollNarrative(true)
+      }
+
       later(() => setPhase("recalled"), 350)
     } else {
       later(() => setPhase("oracle"), 350)
@@ -335,7 +369,66 @@ export function OraclePortal({ cardImages = "{}" }) {
     setNarrative("")
     setVisibleCards(0)
     setShowNarrative(false)
+    setHasRerolled(false)
+    setRerollCards(null)
+    setRerollNarrative("")
+    setRerollVisibleCards(0)
+    setShowRerollNarrative(false)
+    setRerollInput("")
+    setShowRerollInput(false)
+    setRerollLoading(false)
   }, [])
+
+  // ── Reroll ─────────────────────────────────────────────────────────────────
+  const onRerollClick = useCallback(() => {
+    setShowRerollInput(true)
+  }, [])
+
+  const onRerollSubmit = useCallback(async () => {
+    const q = rerollInput.trim()
+    if (!q) return
+
+    setRerollLoading(true)
+    const drawn = drawCards(q)
+
+    try {
+      const res = await fetch(PROXY_URL, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system:   buildSystemPrompt(q, drawn),
+          messages: [{ role: "user", content: buildUserMessage(q, drawn) }],
+        }),
+      })
+      const data = await res.json()
+      const raw = data?.content?.[0]?.text ?? ""
+      const paragraphs = raw
+        .split(/\n\n+/)
+        .map((p) => p.trim())
+        .filter(Boolean)
+        .slice(0, 3)
+        .join("\n\n")
+      const finalNarrative = paragraphs || "The Oracle is silent tonight. The veil holds."
+      setRerollCards(drawn)
+      setRerollNarrative(finalNarrative)
+      saveStoredReroll({ input: q, cards: drawn, narrative: finalNarrative })
+    } catch {
+      const fallback = "The Oracle is silent tonight. The veil holds."
+      setRerollCards(drawn)
+      setRerollNarrative(fallback)
+      saveStoredReroll({ input: q, cards: drawn, narrative: fallback })
+    }
+
+    setRerollLoading(false)
+    setHasRerolled(true)
+    setShowRerollInput(false)
+    setRerollVisibleCards(0)
+    setShowRerollNarrative(false)
+    later(() => setRerollVisibleCards(1), 120)
+    later(() => setRerollVisibleCards(2), 720)
+    later(() => setRerollVisibleCards(3), 1320)
+    later(() => setShowRerollNarrative(true), 2300)
+  }, [rerollInput])
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   const onSubmit = useCallback(async () => {
@@ -447,6 +540,17 @@ export function OraclePortal({ cardImages = "{}" }) {
             visibleCards={visibleCards}
             showNarrative={showNarrative}
             getImageUrl={getImageUrl}
+            onRerollClick={onRerollClick}
+            hasRerolled={hasRerolled}
+            rerollCards={rerollCards}
+            rerollNarrative={rerollNarrative}
+            rerollVisibleCards={rerollVisibleCards}
+            showRerollNarrative={showRerollNarrative}
+            rerollInput={rerollInput}
+            setRerollInput={setRerollInput}
+            onRerollSubmit={onRerollSubmit}
+            showRerollInput={showRerollInput}
+            rerollLoading={rerollLoading}
           />
         )}
       </div>
@@ -599,6 +703,17 @@ function ReadingUI({
   visibleCards,
   showNarrative,
   getImageUrl,
+  onRerollClick,
+  hasRerolled,
+  rerollCards,
+  rerollNarrative,
+  rerollVisibleCards,
+  showRerollNarrative,
+  rerollInput,
+  setRerollInput,
+  onRerollSubmit,
+  showRerollInput,
+  rerollLoading,
 }) {
   return (
     <div
@@ -618,14 +733,15 @@ function ReadingUI({
           paddingBottom:  32,
         }}
       >
-        {/* Spread */}
+        {/* Original spread — dims when reroll is active */}
         <div
           style={{
             display:        "flex",
-            gap:            "clamp(16px, 3vw, 44px)",
+            gap:            rerollCards ? "clamp(8px, 2vw, 36px)" : "clamp(16px, 3vw, 44px)",
             justifyContent: "center",
             flexWrap:       "wrap",
             alignItems:     "flex-start",
+            transition:     "gap 0.6s ease",
           }}
         >
           {cards.map((drawn, i) => (
@@ -634,9 +750,33 @@ function ReadingUI({
               drawn={drawn}
               visible={visibleCards > i}
               imageUrl={getImageUrl(drawn.card, drawn.reversed)}
+              dimmed={!!rerollCards}
             />
           ))}
         </div>
+
+        {/* Reroll spread */}
+        {rerollCards && (
+          <div
+            style={{
+              display:        "flex",
+              gap:            "clamp(16px, 3vw, 44px)",
+              justifyContent: "center",
+              flexWrap:       "wrap",
+              alignItems:     "flex-start",
+              marginTop:       32,
+            }}
+          >
+            {rerollCards.map((drawn, i) => (
+              <CardTile
+                key={"reroll-" + drawn.card.name}
+                drawn={drawn}
+                visible={rerollVisibleCards > i}
+                imageUrl={getImageUrl(drawn.card, drawn.reversed)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Bottom section — scrollable narrative */}
@@ -648,7 +788,24 @@ function ReadingUI({
           borderTop:    "1px solid #2A2A2A",
         }}
       >
-        <NarrativeBlock text={narrative} visible={showNarrative} />
+        <NarrativeBlock text={narrative} visible={showNarrative && !rerollCards} />
+
+        {showNarrative && !hasRerolled && !rerollCards && (
+          <RerollButton onClick={onRerollClick} />
+        )}
+
+        {showRerollInput && !hasRerolled && (
+          <RerollInputUI
+            value={rerollInput}
+            onChange={setRerollInput}
+            onSubmit={onRerollSubmit}
+            isLoading={rerollLoading}
+          />
+        )}
+
+        {rerollCards && (
+          <NarrativeBlock text={rerollNarrative} visible={showRerollNarrative} />
+        )}
       </div>
     </div>
   )
@@ -656,7 +813,7 @@ function ReadingUI({
 
 // ─── Card Tile ────────────────────────────────────────────────────────────────
 
-function CardTile({ drawn, visible, imageUrl }) {
+function CardTile({ drawn, visible, imageUrl, dimmed = false }) {
   const W = 160
   const H = 280
 
@@ -667,9 +824,9 @@ function CardTile({ drawn, visible, imageUrl }) {
         flexDirection: "column",
         alignItems:    "center",
         gap:            12,
-        opacity:       visible ? 1 : 0,
-        transform:     visible ? "translateY(0)" : "translateY(18px)",
-        transition:    "opacity 0.65s ease, transform 0.65s ease",
+        opacity:       visible ? (dimmed ? 0.5 : 1) : 0,
+        transform:     visible ? (dimmed ? "translateY(-24px)" : "translateY(0)") : "translateY(18px)",
+        transition:    "opacity 0.6s ease, transform 0.6s ease",
       }}
     >
       {/* Image */}
@@ -710,32 +867,36 @@ function CardTile({ drawn, visible, imageUrl }) {
         )}
       </div>
 
-      {/* Name */}
-      <span
-        style={{
-          color:      COLORS.primary,
-          fontFamily: "'IM Fell English', serif",
-          fontSize:    14,
-          textAlign:  "center",
-          lineHeight:  1.3,
-          maxWidth:    W,
-        }}
-      >
-        {drawn.card.name}
-      </span>
+      {!dimmed && (
+        <>
+          {/* Name */}
+          <span
+            style={{
+              color:      COLORS.primary,
+              fontFamily: "'IM Fell English', serif",
+              fontSize:    14,
+              textAlign:  "center",
+              lineHeight:  1.3,
+              maxWidth:    W,
+            }}
+          >
+            {drawn.card.name}
+          </span>
 
-      {/* Orientation */}
-      <span
-        style={{
-          color:         COLORS.secondary,
-          fontFamily:    "Inter, sans-serif",
-          fontSize:       11,
-          letterSpacing: "0.09em",
-          textTransform: "uppercase",
-        }}
-      >
-        {drawn.reversed ? "Reversed" : "Upright"}
-      </span>
+          {/* Orientation */}
+          <span
+            style={{
+              color:         COLORS.secondary,
+              fontFamily:    "Inter, sans-serif",
+              fontSize:       11,
+              letterSpacing: "0.09em",
+              textTransform: "uppercase",
+            }}
+          >
+            {drawn.reversed ? "Reversed" : "Upright"}
+          </span>
+        </>
+      )}
     </div>
   )
 }
@@ -772,6 +933,125 @@ function NarrativeBlock({ text, visible }) {
           {para}
         </p>
       ))}
+    </div>
+  )
+}
+
+// ─── Reroll Button ────────────────────────────────────────────────────────────
+
+function RerollButton({ onClick }) {
+  const [hover, setHover] = useState(false)
+  return (
+    <div style={{ display: "flex", justifyContent: "center", marginTop: 32 }}>
+      <button
+        onClick={onClick}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        style={{
+          background:    hover ? COLORS.btnActiveBg   : COLORS.btnInactiveBg,
+          color:         hover ? COLORS.btnActiveText : COLORS.btnInactiveText,
+          border:        "none",
+          borderRadius:   8,
+          padding:       "12px 36px",
+          fontFamily:    "Inter, sans-serif",
+          fontSize:       14,
+          fontWeight:     500,
+          letterSpacing: "0.05em",
+          cursor:        "pointer",
+          transition:    "background 0.25s ease, color 0.25s ease",
+        }}
+      >
+        I choose my own fate
+      </button>
+    </div>
+  )
+}
+
+// ─── Reroll Input UI ──────────────────────────────────────────────────────────
+
+function RerollInputUI({ value, onChange, onSubmit, isLoading }) {
+  const [btnHover, setBtnHover] = useState(false)
+  return (
+    <div
+      style={{
+        display:        "flex",
+        flexDirection:  "column",
+        alignItems:     "center",
+        gap:             24,
+        maxWidth:        560,
+        width:          "100%",
+        padding:        "24px 24px 0",
+        margin:         "0 auto",
+      }}
+    >
+      <p
+        style={{
+          fontFamily: "'IM Fell English', serif",
+          fontStyle:  "italic",
+          fontSize:    17,
+          color:       COLORS.secondary,
+          margin:      0,
+          textAlign:  "center",
+        }}
+      >
+        The cards remember. What else do you seek?
+      </p>
+      {isLoading ? (
+        <p
+          style={{
+            fontFamily: "'IM Fell English', serif",
+            fontStyle:  "italic",
+            fontSize:    17,
+            color:       COLORS.secondary,
+            margin:      0,
+          }}
+        >
+          The Oracle consults the veil…
+        </p>
+      ) : (
+        <>
+          <input
+            autoFocus
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && onSubmit()}
+            placeholder="Speak your question…"
+            style={{
+              width:        "100%",
+              boxSizing:    "border-box",
+              background:    COLORS.inputBg,
+              border:       "none",
+              borderRadius:  24,
+              padding:      "14px 24px",
+              color:         COLORS.primary,
+              fontFamily:   "Inter, sans-serif",
+              fontSize:      15,
+              outline:      "none",
+              caretColor:    COLORS.primary,
+            }}
+          />
+          <button
+            onClick={onSubmit}
+            onMouseEnter={() => setBtnHover(true)}
+            onMouseLeave={() => setBtnHover(false)}
+            style={{
+              background:    btnHover ? COLORS.btnActiveBg   : COLORS.btnInactiveBg,
+              color:         btnHover ? COLORS.btnActiveText : COLORS.btnInactiveText,
+              border:        "none",
+              borderRadius:   8,
+              padding:       "12px 36px",
+              fontFamily:    "Inter, sans-serif",
+              fontSize:       14,
+              fontWeight:     500,
+              letterSpacing: "0.05em",
+              cursor:        "pointer",
+              transition:    "background 0.25s ease, color 0.25s ease",
+            }}
+          >
+            The cards await
+          </button>
+        </>
+      )}
     </div>
   )
 }
