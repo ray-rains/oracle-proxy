@@ -40,10 +40,10 @@ function injectFonts() {
   document.head.appendChild(link)
 }
 
-function dispatch(type, detail = {}) {
-  const ev = new CustomEvent("oracle:action", { detail: { type, ...detail } })
-  try { window.parent.dispatchEvent(ev) } catch {}
-  try { window.dispatchEvent(ev) } catch {}
+function dispatch(action, value) {
+  const msg = { type: "oracle:action", action, value }
+  try { window.parent.postMessage(msg, "*") } catch {}
+  window.postMessage(msg, "*")
 }
 
 export function OracleOverlay() {
@@ -51,15 +51,12 @@ export function OracleOverlay() {
   useEffect(() => {
     injectFonts()
     injectKeyframes()
-    function onState(e) {
-      setState(e.detail)
+    function onMessage(e) {
+      if (!e.data || e.data.type !== "oracle:state") return
+      setState(e.data.detail)
     }
-    try { window.parent.addEventListener("oracle:state", onState) } catch {}
-    window.addEventListener("oracle:state", onState)
-    return () => {
-      try { window.parent.removeEventListener("oracle:state", onState) } catch {}
-      window.removeEventListener("oracle:state", onState)
-    }
+    window.addEventListener("message", onMessage)
+    return () => window.removeEventListener("message", onMessage)
   }, [])
   if (!state) return null
   const {
@@ -117,8 +114,8 @@ export function OracleOverlay() {
       {showUI && (
         <InputUI
           userInput={userInput}
-          setUserInput={(v) => dispatch("inputChange", { value: v })}
-          onSubmit={() => dispatch("submit", { value: userInput })}
+          setUserInput={(v) => dispatch("inputChange", v)}
+          onSubmit={() => dispatch("submit", userInput)}
           isLoading={phase === "loading"}
           oracleImage={oracleImage}
         />
@@ -137,8 +134,8 @@ export function OracleOverlay() {
           rerollVisibleCards={rerollVisibleCards}
           showRerollNarrative={showRerollNarrative}
           rerollInput={state.rerollInput ?? ""}
-          setRerollInput={(v) => dispatch("rerollInputChange", { value: v })}
-          onRerollSubmit={() => dispatch("rerollSubmit", { value: state.rerollInput ?? "" })}
+          setRerollInput={(v) => dispatch("rerollInputChange", v)}
+          onRerollSubmit={() => dispatch("rerollSubmit", state.rerollInput ?? "")}
           showRerollInput={showRerollInput}
           rerollLoading={rerollLoading}
           scattering={scattering}

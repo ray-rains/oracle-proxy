@@ -318,9 +318,9 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
       oracleImage,
     }
     try {
-      window.parent.dispatchEvent(new CustomEvent("oracle:state", { detail: payload }))
-      window.dispatchEvent(new CustomEvent("oracle:state", { detail: payload }))
+      window.parent.postMessage({ type: "oracle:state", detail: payload }, "*")
     } catch {}
+    window.postMessage({ type: "oracle:state", detail: payload }, "*")
   }, [
     phase, userInput, cards, narrative, visibleCards, showNarrative,
     hasBeenOpened, hasRerolled, rerollCards, rerollNarrative,
@@ -330,20 +330,17 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
   // ── Listen for actions from OracleOverlay ─────────────────────────────────
   useEffect(() => {
     function onAction(e) {
-      const { type, value } = e.detail
-      if (type === "close")             onClose()
-      if (type === "submit")            { setUserInput(value); onSubmitWithValue(value) }
-      if (type === "inputChange")       setUserInput(value)
-      if (type === "reroll")            onRerollClick()
-      if (type === "rerollInputChange") setRerollInput(value)
-      if (type === "rerollSubmit")      onRerollSubmitWithValue(value)
+      if (!e.data || e.data.type !== "oracle:action") return
+      const { action, value } = e.data
+      if (action === "close")             onClose()
+      if (action === "submit")            onSubmitWithValue(value)
+      if (action === "inputChange")       setUserInput(value)
+      if (action === "reroll")            onRerollClick()
+      if (action === "rerollInputChange") setRerollInput(value)
+      if (action === "rerollSubmit")      onRerollSubmitWithValue(value)
     }
-    window.parent.addEventListener("oracle:action", onAction)
-    window.addEventListener("oracle:action", onAction)
-    return () => {
-      window.parent.removeEventListener("oracle:action", onAction)
-      window.removeEventListener("oracle:action", onAction)
-    }
+    window.addEventListener("message", onAction)
+    return () => window.removeEventListener("message", onAction)
   }, [])
   // ── Recalled animation ─────────────────────────────────────────────────────
   useEffect(() => {
