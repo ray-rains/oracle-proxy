@@ -804,13 +804,13 @@ function ReadingUI({
         flexShrink:     0,
         width:         "100%",
         maxWidth:       960,
-        padding:       "80px 24px 16px",
+        padding:       "48px 24px 8px",
         display:       "flex",
         justifyContent:"center",
       }}>
         <div style={{
           position:   "relative",
-          height:      NEW_W + PEEK,
+          height:      NEW_W + PEEK + 48,
           width:       cards.length * NEW_W + (cards.length - 1) * 24,
         }}>
           {/* Old cards — peek above new cards */}
@@ -883,6 +883,7 @@ function ReadingUI({
         minHeight:   0,
       }}>
         <NarrativeBlock
+          key={showRerollNarrative && rerollNarrative ? "reroll" : "original"}
           text={showRerollNarrative && rerollNarrative ? rerollNarrative : narrative}
           visible={showNarrative || showRerollNarrative}
         />
@@ -1032,15 +1033,20 @@ function CardTile({ drawn, visible, imageUrl, dimmed = false }) {
 // ─── Narrative Block ──────────────────────────────────────────────────────────
 
 function NarrativeBlock({ text, visible }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 20)
+    return () => clearTimeout(t)
+  }, [])
   if (!text) return null
   return (
     <div style={{
       maxWidth:      680,
-      margin:       "0 auto",
-      padding:      "24px 0 0",
-      opacity:       visible ? 1 : 0,
-      transform:     visible ? "translateY(0)" : "translateY(14px)",
-      transition:   "opacity 0.8s ease, transform 0.8s ease",
+      margin:        "0 auto",
+      padding:       "24px 0 0",
+      opacity:       visible && mounted ? 1 : 0,
+      transform:     visible && mounted ? "translateY(0)" : "translateY(14px)",
+      transition:    "opacity 0.8s ease, transform 0.8s ease",
       pointerEvents: visible ? "all" : "none",
     }}>
       {text.split("\n\n").map((para, i) => (
