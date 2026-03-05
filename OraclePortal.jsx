@@ -846,14 +846,16 @@ function ReadingUI({
                   />
                 </div>
               )}
-              {/* Spacer to hold column height when no reroll cards yet */}
+              {/* Invisible spacer — holds column height, never visible */}
               {!rerollCards && (
-                <CardImage
-                  drawn={drawn}
-                  imageUrl={getImageUrl(drawn.card, drawn.reversed)}
-                  size={NEW_W}
-                  showLabels={true}
-                />
+                <div style={{ width: NEW_W, height: NEW_W, visibility: "hidden" }}>
+                  <CardImage
+                    drawn={drawn}
+                    imageUrl={getImageUrl(drawn.card, drawn.reversed)}
+                    size={NEW_W}
+                    showLabels={true}
+                  />
+                </div>
               )}
             </div>
           )
