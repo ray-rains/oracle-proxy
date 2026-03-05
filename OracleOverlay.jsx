@@ -167,8 +167,8 @@ function CloseButton({ onClick }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        position:      "absolute",
-        top:            16,
+        position:      "fixed",
+        bottom:         16,
         left:          "50%",
         transform:     "translateX(-50%)",
         background:    "none",
