@@ -240,17 +240,27 @@ function injectFonts() {
 }
 
 function useBodyPortal() {
-  const [el] = useState(() => {
-    if (typeof document === "undefined") return null
-    const div = document.createElement("div")
-    div.style.cssText = "position:fixed;top:0;left:0;width:0;height:0;z-index:9998;pointer-events:none;"
-    return div
-  })
+  const [el, setEl] = useState(null)
   useEffect(() => {
-    if (!el) return
-    document.body.appendChild(el)
-    return () => { document.body.removeChild(el) }
-  }, [el])
+    if (typeof document === "undefined") return
+    const div = document.createElement("div")
+    div.style.cssText = [
+      "position:fixed",
+      "top:0",
+      "left:0",
+      "right:0",
+      "bottom:0",
+      "z-index:99999",
+      "pointer-events:none",
+      "visibility:hidden",
+    ].join(";")
+    div.id = "oracle-portal"
+    document.body.appendChild(div)
+    setEl(div)
+    return () => {
+      if (document.body.contains(div)) document.body.removeChild(div)
+    }
+  }, [])
   return el
 }
 
@@ -338,6 +348,7 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
         : phase === "hovering"
         ? "opacity 1.5s ease"
         : "opacity 0.3s ease",
+    pointerEvents:   "all",
     zIndex:          9999,
     display:         "flex",
     alignItems:      "center",
@@ -551,52 +562,46 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
       </span>
 
       {/* Full-screen overlay — portaled to body to escape Safari stacking context */}
-      {portalEl && ReactDOM.createPortal(
-      <div style={{
-        ...overlayStyle,
-        pointerEvents: phase === "idle" ? "none" : "all",
-        visibility: phase === "idle" ? "hidden" : "visible",
-      }}>
-        {/* Close */}
-        {showClose && (
-          <CloseButton onClick={onClose} />
-        )}
-
-        {/* Input UI */}
-        {showUI && (
-          <InputUI
-            userInput={userInput}
-            setUserInput={setUserInput}
-            onSubmit={onSubmit}
-            isLoading={phase === "loading"}
-            oracleImage={oracleImage}
-          />
-        )}
-
-        {/* Reading UI */}
-        {showReading && (
-          <ReadingUI
-            cards={cards}
-            narrative={narrative}
-            visibleCards={visibleCards}
-            showNarrative={showNarrative}
-            getImageUrl={getImageUrl}
-            onRerollClick={onRerollClick}
-            hasRerolled={hasRerolled}
-            rerollCards={rerollCards}
-            rerollNarrative={rerollNarrative}
-            rerollVisibleCards={rerollVisibleCards}
-            showRerollNarrative={showRerollNarrative}
-            rerollInput={rerollInput}
-            setRerollInput={setRerollInput}
-            onRerollSubmit={onRerollSubmit}
-            showRerollInput={showRerollInput}
-            rerollLoading={rerollLoading}
-            scattering={scattering}
-          />
-        )}
-      </div>
-      , portalEl)}
+      {portalEl && (() => {
+        portalEl.style.pointerEvents = phase === "idle" ? "none" : "all"
+        portalEl.style.visibility    = phase === "idle" ? "hidden" : "visible"
+        return ReactDOM.createPortal(
+          <div style={overlayStyle}>
+            {showClose && <CloseButton onClick={onClose} />}
+            {showUI && (
+              <InputUI
+                userInput={userInput}
+                setUserInput={setUserInput}
+                onSubmit={onSubmit}
+                isLoading={phase === "loading"}
+                oracleImage={oracleImage}
+              />
+            )}
+            {showReading && (
+              <ReadingUI
+                cards={cards}
+                narrative={narrative}
+                visibleCards={visibleCards}
+                showNarrative={showNarrative}
+                getImageUrl={getImageUrl}
+                onRerollClick={onRerollClick}
+                hasRerolled={hasRerolled}
+                rerollCards={rerollCards}
+                rerollNarrative={rerollNarrative}
+                rerollVisibleCards={rerollVisibleCards}
+                showRerollNarrative={showRerollNarrative}
+                rerollInput={rerollInput}
+                setRerollInput={setRerollInput}
+                onRerollSubmit={onRerollSubmit}
+                showRerollInput={showRerollInput}
+                rerollLoading={rerollLoading}
+                scattering={scattering}
+              />
+            )}
+          </div>,
+          portalEl
+        )
+      })()}
     </div>
   )
 }
