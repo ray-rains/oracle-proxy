@@ -338,7 +338,6 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
         : phase === "hovering"
         ? "opacity 1.5s ease"
         : "opacity 0.3s ease",
-    pointerEvents: phase === "idle" ? "none" : "all",
     zIndex:          9999,
     display:         "flex",
     alignItems:      "center",
@@ -553,7 +552,11 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
 
       {/* Full-screen overlay — portaled to body to escape Safari stacking context */}
       {portalEl && ReactDOM.createPortal(
-      <div style={overlayStyle}>
+      <div style={{
+        ...overlayStyle,
+        pointerEvents: phase === "idle" ? "none" : "all",
+        visibility: phase === "idle" ? "hidden" : "visible",
+      }}>
         {/* Close */}
         {showClose && (
           <CloseButton onClick={onClose} />
