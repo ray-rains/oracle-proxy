@@ -787,106 +787,149 @@ function ReadingUI({
   rerollLoading,
   scattering,
 }) {
+  const NEW_W = 120
+  const OLD_W = Math.round(NEW_W * 0.7)  // 84px
+  const PEEK  = 16  // px old card peeks above new card
   return (
-    <div
-      style={{
-        display:        "flex",
-        flexDirection:  "column",
-        height:         "100vh",
-        width:          "100%",
-        maxWidth:        960,
-        padding:        "48px 24px 0",
-        position:       "relative",
-      }}
-    >
-      {/* Top section — fixed, no scroll */}
-      <div
-        style={{
-          flexShrink:     0,
-          paddingBottom:  32,
-        }}
-      >
-        {/* Original spread — dims when reroll is active */}
-        <div
-          style={{
-            display:        "flex",
-            gap:            rerollCards ? "clamp(8px, 2vw, 36px)" : "clamp(16px, 3vw, 44px)",
-            justifyContent: "center",
-            flexWrap:       "wrap",
-            alignItems:     "flex-start",
-            transition:     "gap 0.6s ease",
-            zIndex:          2,
-            position:       "relative",
-          }}
-        >
+    <div style={{
+      position:      "fixed",
+      inset:          0,
+      display:       "flex",
+      flexDirection: "column",
+      alignItems:    "center",
+    }}>
+      {/* ── CARD ROW ── */}
+      <div style={{
+        flexShrink:     0,
+        width:         "100%",
+        maxWidth:       960,
+        padding:       "80px 24px 24px",
+        display:       "flex",
+        justifyContent:"center",
+      }}>
+        <div style={{
+          position: "relative",
+          height:    NEW_W + PEEK,
+          display:  "flex",
+          gap:       24,
+          alignItems:"flex-end",
+        }}>
+          {/* Old cards — peek above new cards */}
           {cards.map((drawn, i) => (
-            <CardTile
-              key={drawn.card.name}
-              drawn={drawn}
-              visible={visibleCards > i}
-              imageUrl={getImageUrl(drawn.card, drawn.reversed)}
-              dimmed={!!rerollCards}
+            <div
+              key={"old-" + drawn.card.name}
+              style={{
+                position:   "absolute",
+                left:        i * (NEW_W + 24),
+                bottom:      NEW_W,  // sits above new cards
+                width:       OLD_W,
+                height:      OLD_W,
+                marginLeft:  (NEW_W - OLD_W) / 2,  // center over new card
+                opacity:     visibleCards > i ? (rerollCards ? 0.5 : 1) : 0,
+                transition:  "opacity 0.6s ease, bottom 0.6s ease",
+                zIndex:      rerollCards ? 2 : 1,
+              }}
+            >
+              <CardImage
+                drawn={drawn}
+                imageUrl={getImageUrl(drawn.card, drawn.reversed)}
+                size={rerollCards ? OLD_W : NEW_W}
+                showLabels={!rerollCards}
+              />
+            </div>
+          ))}
+          {/* New cards — render in normal flow */}
+          {cards.map((drawn, i) => (
+            <div
+              key={"slot-" + i}
+              style={{
+                width:   NEW_W,
+                height:  NEW_W,
+                opacity: rerollCards ? 0 : (visibleCards > i ? 1 : 0),
+                transition: "opacity 0.6s ease",
+              }}
             />
           ))}
+          {/* Reroll cards */}
+          {rerollCards && cards.map((_, i) => (
+            <div
+              key={"new-" + i}
+              style={{
+                position:  "absolute",
+                left:       i * (NEW_W + 24),
+                bottom:     0,
+                width:      NEW_W,
+                height:     NEW_W,
+                opacity:    rerollVisibleCards > i ? 1 : 0,
+                transform:  rerollVisibleCards > i ? "translateY(0)" : "translateY(18px)",
+                transition: "opacity 0.65s ease, transform 0.65s ease",
+                zIndex:     1,
+              }}
+            >
+              {rerollCards[i] && (
+                <CardImage
+                  drawn={rerollCards[i]}
+                  imageUrl={getImageUrl(rerollCards[i].card, rerollCards[i].reversed)}
+                  size={NEW_W}
+                  showLabels={true}
+                />
+              )}
+            </div>
+          ))}
         </div>
-
-        {/* Reroll spread */}
-        {rerollCards && (
-          <div
-            style={{
-              display:        "flex",
-              gap:            "clamp(16px, 3vw, 44px)",
-              justifyContent: "center",
-              flexWrap:       "wrap",
-              alignItems:     "flex-start",
-              marginTop:       0,
-              zIndex:          1,
-              position:       "relative",
-            }}
-          >
-            {rerollCards.map((drawn, i) => (
-              <CardTile
-                key={"reroll-" + drawn.card.name}
-                drawn={drawn}
-                visible={rerollVisibleCards > i}
-                imageUrl={getImageUrl(drawn.card, drawn.reversed)}
-              />
-            ))}
-          </div>
-        )}
       </div>
-
-      {/* Bottom section — scrollable narrative */}
-      <div
-        style={{
-          overflowY:    "auto",
-          flexGrow:      1,
-          paddingBottom: 48,
-          borderTop:    "1px solid #2A2A2A",
-          position:     "relative",
-        }}
-      >
-        <NarrativeBlock text={narrative} visible={showNarrative && !rerollCards} scattering={scattering} />
-
-        {rerollCards && (
-          <NarrativeBlock text={rerollNarrative} visible={showRerollNarrative} />
-        )}
-        <div
-          style={{
-            position:      "sticky",
-            bottom:         0,
-            left:           0,
-            right:          0,
-            height:         24,
-            background:    "linear-gradient(to bottom, rgba(0,0,0,0), #000000)",
-            pointerEvents: "none",
-            zIndex:         1,
-            flexShrink:     0,
-          }}
+      {/* ── NARRATIVE SCROLL BOX ── */}
+      <div style={{
+        flex:       1,
+        width:     "100%",
+        maxWidth:   960,
+        overflowY: "auto",
+        padding:   "0 24px",
+        position:  "relative",
+        borderTop: "1px solid #2A2A2A",
+        paddingBottom: 80,
+      }}>
+        {/* Active narrative — fades out when reroll narrative is ready */}
+        <NarrativeBlock
+          text={narrative}
+          visible={showNarrative && !showRerollNarrative}
         />
+        {/* Reroll narrative — fades in */}
+        {rerollNarrative ? (
+          <NarrativeBlock
+            text={rerollNarrative}
+            visible={showRerollNarrative}
+          />
+        ) : null}
+        {/* Fade gradient */}
+        <div style={{
+          position:   "sticky",
+          bottom:      0,
+          left:        0,
+          right:       0,
+          height:      48,
+          background: "linear-gradient(to bottom, rgba(0,0,0,0), #000000)",
+          pointerEvents: "none",
+          zIndex:      1,
+        }} />
       </div>
-
-      {showRerollInput && !hasRerolled && (
+      {/* ── PINNED BUTTON ── */}
+      {showNarrative && !hasRerolled && !rerollCards && (
+        <div style={{
+          position:       "absolute",
+          bottom:          24,
+          left:           "50%",
+          transform:      "translateX(-50%)",
+          zIndex:          3,
+          pointerEvents:  "all",
+          opacity:        scattering ? 0 : 1,
+          transition:     "opacity 0.4s ease",
+        }}>
+          <RerollButton onClick={onRerollClick} />
+        </div>
+      )}
+      {/* ── REROLL INPUT MODAL ── */}
+      {showRerollInput && (
         <div style={{
           position:        "fixed",
           inset:            0,
@@ -894,7 +937,7 @@ function ReadingUI({
           display:         "flex",
           alignItems:      "center",
           justifyContent:  "center",
-          zIndex:           10,
+          zIndex:           20,
         }}>
           <RerollInputUI
             value={rerollInput}
@@ -904,58 +947,30 @@ function ReadingUI({
           />
         </div>
       )}
-
-      {showNarrative && !hasRerolled && !rerollCards && (
-        <div style={{
-          position:      "absolute",
-          bottom:         24,
-          left:          "50%",
-          transform:     "translateX(-50%)",
-          zIndex:         2,
-          pointerEvents: scattering ? "none" : "all",
-          animation:     scattering ? "oracle-scatter-right 0.5s ease-out forwards" : "none",
-        }}>
-          <RerollButton onClick={onRerollClick} />
-        </div>
-      )}
     </div>
   )
 }
 
-// ─── Card Tile ────────────────────────────────────────────────────────────────
+// ─── Card Image ───────────────────────────────────────────────────────────────
 
-function CardTile({ drawn, visible, imageUrl, dimmed = false }) {
-  const W = 160
-  const H = 280
-
+function CardImage({ drawn, imageUrl, size, showLabels }) {
   return (
-    <div
-      style={{
-        display:       "flex",
-        flexDirection: "column",
-        alignItems:    "center",
-        gap:            12,
-        opacity:       visible ? (dimmed ? 0.5 : 1) : 0,
-        transform:     visible ? (dimmed ? "translateY(128px)" : "translateY(0)") : "translateY(18px)",
-        transition:    "opacity 0.6s ease, transform 0.6s ease",
-      }}
-    >
-      {/* Image */}
-      <div
-        style={{
-          width:         W,
-          height:        H,
-          borderRadius:  8,
-          overflow:     "hidden",
-          transform:    drawn.reversed ? "rotate(180deg)" : "none",
-          background:  "#111111",
-          border:       "1px solid #2A2A2A",
-          display:      "flex",
-          alignItems:   "center",
-          justifyContent:"center",
-          flexShrink:    0,
-        }}
-      >
+    <div style={{
+      display:       "flex",
+      flexDirection: "column",
+      alignItems:    "center",
+      gap:            6,
+    }}>
+      <div style={{
+        width:          size,
+        height:         size,
+        borderRadius:   8,
+        overflow:      "hidden",
+        transform:     drawn.reversed ? "rotate(180deg)" : "none",
+        background:   "#111111",
+        border:        "1px solid #2A2A2A",
+        flexShrink:    0,
+      }}>
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -963,47 +978,41 @@ function CardTile({ drawn, visible, imageUrl, dimmed = false }) {
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         ) : (
-          <span
-            style={{
-              color:      COLORS.secondary,
-              fontFamily: "Inter, sans-serif",
-              fontSize:    11,
-              textAlign:  "center",
-              padding:    "0 10px",
-              lineHeight:  1.5,
-            }}
-          >
+          <span style={{
+            color:      COLORS.secondary,
+            fontFamily: "Inter, sans-serif",
+            fontSize:    10,
+            textAlign:  "center",
+            padding:    "0 6px",
+            lineHeight:  1.4,
+            display:    "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height:     "100%",
+          }}>
             {drawn.card.name}
           </span>
         )}
       </div>
-
-      {!dimmed && (
+      {showLabels && (
         <>
-          {/* Name */}
-          <span
-            style={{
-              color:      COLORS.primary,
-              fontFamily: "'IM Fell English', serif",
-              fontSize:    14,
-              textAlign:  "center",
-              lineHeight:  1.3,
-              maxWidth:    W,
-            }}
-          >
+          <span style={{
+            color:      COLORS.primary,
+            fontFamily: "'IM Fell English', serif",
+            fontSize:    12,
+            textAlign:  "center",
+            lineHeight:  1.3,
+            maxWidth:    size,
+          }}>
             {drawn.card.name}
           </span>
-
-          {/* Orientation */}
-          <span
-            style={{
-              color:         COLORS.secondary,
-              fontFamily:    "Inter, sans-serif",
-              fontSize:       11,
-              letterSpacing: "0.09em",
-              textTransform: "uppercase",
-            }}
-          >
+          <span style={{
+            color:         COLORS.secondary,
+            fontFamily:    "Inter, sans-serif",
+            fontSize:       10,
+            letterSpacing: "0.09em",
+            textTransform: "uppercase",
+          }}>
             {drawn.reversed ? "Reversed" : "Upright"}
           </span>
         </>
@@ -1012,44 +1021,51 @@ function CardTile({ drawn, visible, imageUrl, dimmed = false }) {
   )
 }
 
+// ─── Card Tile ────────────────────────────────────────────────────────────────
+
+function CardTile({ drawn, visible, imageUrl, dimmed = false }) {
+  const size = 120
+  return (
+    <div style={{
+      opacity:    visible ? (dimmed ? 0.5 : 1) : 0,
+      transform:  visible ? "translateY(0)" : "translateY(18px)",
+      transition: "opacity 0.65s ease, transform 0.65s ease",
+    }}>
+      <CardImage
+        drawn={drawn}
+        imageUrl={imageUrl}
+        size={size}
+        showLabels={!dimmed}
+      />
+    </div>
+  )
+}
+
 // ─── Narrative Block ──────────────────────────────────────────────────────────
 
-function NarrativeBlock({ text, visible, scattering = false }) {
+function NarrativeBlock({ text, visible }) {
   if (!text) return null
   return (
-    <div
-      style={{
-        maxWidth:   680,
-        textAlign:  "left",
-        padding:    "24px 0 0",
-        margin:     "0 auto",
-        opacity:       visible ? 1 : 0,
-        transform:     visible ? "translateY(0)" : "translateY(14px)",
-        transition:    "opacity 1.1s ease, transform 1.1s ease, max-height 0.8s ease",
-        maxHeight:     visible ? "2000px" : "0px",
-        overflow:      "hidden",
-        pointerEvents: visible ? "all" : "none",
-      }}
-    >
+    <div style={{
+      maxWidth:      680,
+      margin:       "0 auto",
+      padding:      "24px 0 0",
+      opacity:       visible ? 1 : 0,
+      transform:     visible ? "translateY(0)" : "translateY(14px)",
+      transition:   "opacity 0.8s ease, transform 0.8s ease",
+      pointerEvents: visible ? "all" : "none",
+    }}>
       {text.split("\n\n").map((para, i) => (
-        <p
-          key={i}
-          style={{
-            fontFamily: "Inter, sans-serif",
-            fontStyle:  "normal",
-            fontWeight:  400,
-            fontSize:   "9pt",
-            lineHeight:  1.5,
-            color:       "#EAEAEA",
-            textAlign:  "left",
-            margin:      i === 0 ? 0 : "1.5em 0 0",
-            animation:   scattering
-              ? (i % 2 === 0
-                  ? "oracle-scatter-left 0.5s ease-out forwards"
-                  : "oracle-scatter-right 0.5s ease-out forwards")
-              : "none",
-          }}
-        >
+        <p key={i} style={{
+          fontFamily: "Inter, sans-serif",
+          fontStyle:  "normal",
+          fontWeight:  400,
+          fontSize:   "9pt",
+          lineHeight:  1.5,
+          color:      "#EAEAEA",
+          textAlign:  "left",
+          margin:      i === 0 ? 0 : "1.5em 0 0",
+        }}>
           {para}
         </p>
       ))}
@@ -1062,28 +1078,27 @@ function NarrativeBlock({ text, visible, scattering = false }) {
 function RerollButton({ onClick }) {
   const [hover, setHover] = useState(false)
   return (
-    <div style={{ display: "flex", justifyContent: "center", marginTop: 32 }}>
-      <button
-        onClick={onClick}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
-        style={{
-          background:    hover ? COLORS.btnActiveBg   : COLORS.btnInactiveBg,
-          color:         hover ? COLORS.btnActiveText : COLORS.btnInactiveText,
-          border:        "none",
-          borderRadius:   8,
-          padding:       "12px 36px",
-          fontFamily:    "Inter, sans-serif",
-          fontSize:       14,
-          fontWeight:     500,
-          letterSpacing: "0.05em",
-          cursor:        "pointer",
-          transition:    "background 0.25s ease, color 0.25s ease",
-        }}
-      >
-        I choose my own fate
-      </button>
-    </div>
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        background:    hover ? COLORS.btnActiveBg   : COLORS.btnInactiveBg,
+        color:         hover ? COLORS.btnActiveText : COLORS.btnInactiveText,
+        border:        "none",
+        borderRadius:   8,
+        padding:       "12px 36px",
+        fontFamily:    "Inter, sans-serif",
+        fontSize:       14,
+        fontWeight:     500,
+        letterSpacing: "0.05em",
+        cursor:        "pointer",
+        transition:    "background 0.25s ease, color 0.25s ease",
+        whiteSpace:    "nowrap",
+      }}
+    >
+      I choose my own fate
+    </button>
   )
 }
 
@@ -1092,40 +1107,34 @@ function RerollButton({ onClick }) {
 function RerollInputUI({ value, onChange, onSubmit, isLoading }) {
   const [btnHover, setBtnHover] = useState(false)
   return (
-    <div
-      style={{
-        display:        "flex",
-        flexDirection:  "column",
-        alignItems:     "center",
-        gap:             24,
-        maxWidth:        560,
-        width:          "100%",
-        padding:        "24px 24px 0",
-        margin:         "0 auto",
-      }}
-    >
-      <p
-        style={{
-          fontFamily: "'IM Fell English', serif",
-          fontStyle:  "italic",
-          fontSize:    17,
-          color:       COLORS.secondary,
-          margin:      0,
-          textAlign:  "center",
-        }}
-      >
+    <div style={{
+      display:       "flex",
+      flexDirection: "column",
+      alignItems:    "center",
+      gap:            24,
+      maxWidth:       480,
+      width:         "100%",
+      padding:       "0 24px",
+    }}>
+      <p style={{
+        fontFamily: "'IM Fell English', serif",
+        fontStyle:  "italic",
+        fontSize:    20,
+        color:       COLORS.primary,
+        margin:      0,
+        textAlign:  "center",
+        lineHeight:  1.4,
+      }}>
         The cards remember. What else do you seek?
       </p>
       {isLoading ? (
-        <p
-          style={{
-            fontFamily: "'IM Fell English', serif",
-            fontStyle:  "italic",
-            fontSize:    17,
-            color:       COLORS.secondary,
-            margin:      0,
-          }}
-        >
+        <p style={{
+          fontFamily: "'IM Fell English', serif",
+          fontStyle:  "italic",
+          fontSize:    16,
+          color:       COLORS.secondary,
+          margin:      0,
+        }}>
           The Oracle consults the veil…
         </p>
       ) : (
@@ -1137,17 +1146,17 @@ function RerollInputUI({ value, onChange, onSubmit, isLoading }) {
             onKeyDown={(e) => e.key === "Enter" && onSubmit()}
             placeholder="Speak your question…"
             style={{
-              width:        "100%",
-              boxSizing:    "border-box",
-              background:    COLORS.inputBg,
-              border:       "none",
-              borderRadius:  24,
-              padding:      "14px 24px",
-              color:         COLORS.primary,
-              fontFamily:   "Inter, sans-serif",
-              fontSize:      15,
-              outline:      "none",
-              caretColor:    COLORS.primary,
+              width:       "100%",
+              boxSizing:   "border-box",
+              background:   COLORS.inputBg,
+              border:      "none",
+              borderRadius: 24,
+              padding:     "14px 24px",
+              color:        COLORS.primary,
+              fontFamily:  "Inter, sans-serif",
+              fontSize:     15,
+              outline:     "none",
+              caretColor:   COLORS.primary,
             }}
           />
           <button
