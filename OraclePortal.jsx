@@ -206,6 +206,14 @@ const KEYFRAMES = `
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes oracle-scatter-left {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-40px); }
+}
+@keyframes oracle-scatter-right {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(40px); }
+}
 `
 
 function injectKeyframes() {
@@ -232,7 +240,7 @@ function injectFonts() {
 
 // ─── OraclePortal ─────────────────────────────────────────────────────────────
 
-export function OraclePortal({ cardImages = "{}" }) {
+export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
   const [phase, setPhase]                 = useState("idle")
   const [userInput, setUserInput]         = useState("")
   const [cards, setCards]                 = useState(null)
@@ -251,6 +259,7 @@ export function OraclePortal({ cardImages = "{}" }) {
   const [rerollInput,         setRerollInput]         = useState("")
   const [showRerollInput,     setShowRerollInput]     = useState(false)
   const [rerollLoading,       setRerollLoading]       = useState(false)
+  const [scattering,          setScattering]          = useState(false)
 
   const locked      = useRef(false)  // true once overlay is committed (clicked)
   const timerRefs   = useRef([])
@@ -379,11 +388,16 @@ export function OraclePortal({ cardImages = "{}" }) {
     setRerollInput("")
     setShowRerollInput(false)
     setRerollLoading(false)
+    setScattering(false)
   }, [])
 
   // ── Reroll ─────────────────────────────────────────────────────────────────
   const onRerollClick = useCallback(() => {
-    setShowRerollInput(true)
+    setScattering(true)
+    setTimeout(() => {
+      setScattering(false)
+      setShowRerollInput(true)
+    }, 600)
   }, [])
 
   const onRerollSubmit = useCallback(async () => {
@@ -423,13 +437,14 @@ export function OraclePortal({ cardImages = "{}" }) {
 
     setRerollLoading(false)
     setHasRerolled(true)
+    setScattering(false)
     setShowRerollInput(false)
     setRerollVisibleCards(0)
     setShowRerollNarrative(false)
-    later(() => setRerollVisibleCards(1), 120)
-    later(() => setRerollVisibleCards(2), 720)
-    later(() => setRerollVisibleCards(3), 1320)
-    later(() => setShowRerollNarrative(true), 2300)
+    later(() => setRerollVisibleCards(1), 520)
+    later(() => setRerollVisibleCards(2), 1120)
+    later(() => setRerollVisibleCards(3), 1720)
+    later(() => setShowRerollNarrative(true), 2700)
   }, [rerollInput])
 
   // ── Submit ─────────────────────────────────────────────────────────────────
@@ -533,6 +548,7 @@ export function OraclePortal({ cardImages = "{}" }) {
             setUserInput={setUserInput}
             onSubmit={onSubmit}
             isLoading={phase === "loading"}
+            oracleImage={oracleImage}
           />
         )}
 
@@ -555,6 +571,7 @@ export function OraclePortal({ cardImages = "{}" }) {
             onRerollSubmit={onRerollSubmit}
             showRerollInput={showRerollInput}
             rerollLoading={rerollLoading}
+            scattering={scattering}
           />
         )}
       </div>
@@ -573,7 +590,7 @@ function CloseButton({ onClick }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         position:      "absolute",
-        top:            64,
+        top:            24,
         left:          "50%",
         transform:     "translateX(-50%)",
         background:    "none",
@@ -598,7 +615,7 @@ function CloseButton({ onClick }) {
 
 // ─── Input UI ─────────────────────────────────────────────────────────────────
 
-function InputUI({ userInput, setUserInput, onSubmit, isLoading }) {
+function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "" }) {
   const [mounted, setMounted]   = useState(false)
   const [btnHover, setBtnHover] = useState(false)
 
@@ -619,86 +636,132 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading }) {
         display:        "flex",
         flexDirection:  "column",
         alignItems:     "center",
-        gap:             32,
-        maxWidth:        560,
+        gap:             0,
+        height:         "100vh",
+        justifyContent: "space-between",
         width:          "100%",
-        padding:        "0 24px",
+        maxWidth:        560,
         ...fadeStyle,
       }}
     >
-      <h1
-        style={{
-          fontFamily:  "'IM Fell English', serif",
-          fontSize:    "clamp(22px, 4vw, 36px)",
-          fontWeight:   400,
-          color:        COLORS.primary,
-          margin:       0,
-          textAlign:   "center",
-          letterSpacing:"0.02em",
-          lineHeight:   1.35,
-        }}
-      >
-        What do you seek, traveller?
-      </h1>
+      <div style={{ height: 24 }} />
 
-      {isLoading ? (
-        <p
-          style={{
-            fontFamily: "'IM Fell English', serif",
-            fontStyle:  "italic",
-            fontSize:    17,
-            color:       COLORS.secondary,
-            margin:      0,
-            animation:  "oracle-rise 0.5s ease forwards",
-          }}
-        >
-          The Oracle consults the veil…
-        </p>
-      ) : (
-        <>
-          <input
-            autoFocus
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && onSubmit()}
-            placeholder="Speak your question…"
+      {/* Oracle illustration */}
+      <div style={{
+        position:   "relative",
+        flexGrow:    1,
+        width:      "100%",
+        maxWidth:    560,
+        overflow:   "hidden",
+        opacity:     mounted ? 1 : 0,
+        transition: "opacity 500ms ease-out",
+      }}>
+        {oracleImage ? (
+          <img
+            src={oracleImage}
+            alt="The Oracle"
             style={{
-              width:          "100%",
-              boxSizing:      "border-box",
-              background:      COLORS.inputBg,
-              border:         "none",
-              borderRadius:    24,
-              padding:        "14px 24px",
-              color:           COLORS.primary,
-              fontFamily:     "Inter, sans-serif",
-              fontSize:        15,
-              outline:        "none",
-              caretColor:      COLORS.primary,
+              width:      "100%",
+              height:     "100%",
+              objectFit:  "cover",
+              display:    "block",
             }}
           />
+        ) : null}
+        <div style={{
+          position:   "absolute",
+          bottom:      0,
+          left:        0,
+          right:       0,
+          height:     "80%",
+          background: "linear-gradient(to top, #000000 0%, rgba(0,0,0,0) 100%)",
+          pointerEvents: "none",
+        }} />
+      </div>
 
-          <button
-            onClick={onSubmit}
-            onMouseEnter={() => setBtnHover(true)}
-            onMouseLeave={() => setBtnHover(false)}
+      {/* Input section */}
+      <div style={{
+        display:       "flex",
+        flexDirection: "column",
+        alignItems:    "center",
+        gap:            32,
+        width:         "100%",
+        padding:       "0 24px 48px",
+      }}>
+        <h1
+          style={{
+            fontFamily:  "'IM Fell English', serif",
+            fontSize:    "clamp(22px, 4vw, 36px)",
+            fontWeight:   400,
+            color:        COLORS.primary,
+            margin:       0,
+            textAlign:   "center",
+            letterSpacing:"0.02em",
+            lineHeight:   1.35,
+          }}
+        >
+          What do you seek, traveller?
+        </h1>
+
+        {isLoading ? (
+          <p
             style={{
-              background:   btnHover ? COLORS.btnActiveBg   : COLORS.btnInactiveBg,
-              color:        btnHover ? COLORS.btnActiveText : COLORS.btnInactiveText,
-              border:      "none",
-              borderRadius: 8,
-              padding:     "12px 36px",
-              fontFamily:  "Inter, sans-serif",
-              fontSize:     14,
-              fontWeight:   500,
-              letterSpacing:"0.05em",
-              cursor:      "pointer",
-              transition:  "background 0.25s ease, color 0.25s ease",
+              fontFamily: "'IM Fell English', serif",
+              fontStyle:  "italic",
+              fontSize:    17,
+              color:       COLORS.secondary,
+              margin:      0,
+              animation:  "oracle-rise 0.5s ease forwards",
             }}
           >
-            The cards await
-          </button>
-        </>
-      )}
+            The Oracle consults the veil…
+          </p>
+        ) : (
+          <>
+            <input
+              autoFocus
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && onSubmit()}
+              placeholder="Speak your question…"
+              style={{
+                width:          "100%",
+                boxSizing:      "border-box",
+                background:      COLORS.inputBg,
+                border:         "none",
+                borderRadius:    24,
+                padding:        "14px 24px",
+                color:           COLORS.primary,
+                fontFamily:     "Inter, sans-serif",
+                fontSize:        15,
+                outline:        "none",
+                caretColor:      COLORS.primary,
+              }}
+            />
+
+            <button
+              onClick={onSubmit}
+              onMouseEnter={() => setBtnHover(true)}
+              onMouseLeave={() => setBtnHover(false)}
+              style={{
+                background:   btnHover ? COLORS.btnActiveBg   : COLORS.btnInactiveBg,
+                color:        btnHover ? COLORS.btnActiveText : COLORS.btnInactiveText,
+                border:      "none",
+                borderRadius: 8,
+                padding:     "12px 36px",
+                fontFamily:  "Inter, sans-serif",
+                fontSize:     14,
+                fontWeight:   500,
+                letterSpacing:"0.05em",
+                cursor:      "pointer",
+                transition:  "background 0.25s ease, color 0.25s ease",
+              }}
+            >
+              The cards await
+            </button>
+          </>
+        )}
+      </div>
     </div>
   )
 }
@@ -722,6 +785,7 @@ function ReadingUI({
   onRerollSubmit,
   showRerollInput,
   rerollLoading,
+  scattering,
 }) {
   return (
     <div
@@ -751,6 +815,8 @@ function ReadingUI({
             flexWrap:       "wrap",
             alignItems:     "flex-start",
             transition:     "gap 0.6s ease",
+            zIndex:          2,
+            position:       "relative",
           }}
         >
           {cards.map((drawn, i) => (
@@ -774,6 +840,8 @@ function ReadingUI({
               flexWrap:       "wrap",
               alignItems:     "flex-start",
               marginTop:       32,
+              zIndex:          1,
+              position:       "relative",
             }}
           >
             {rerollCards.map((drawn, i) => (
@@ -798,7 +866,7 @@ function ReadingUI({
           position:     "relative",
         }}
       >
-        <NarrativeBlock text={narrative} visible={showNarrative && !rerollCards} />
+        <NarrativeBlock text={narrative} visible={showNarrative && !rerollCards} scattering={scattering} />
 
         {showRerollInput && !hasRerolled && (
           <RerollInputUI
@@ -829,12 +897,13 @@ function ReadingUI({
 
       {showNarrative && !hasRerolled && !rerollCards && (
         <div style={{
-          position:       "absolute",
-          bottom:          24,
-          left:           "50%",
-          transform:      "translateX(-50%)",
-          zIndex:          2,
-          pointerEvents:  "all",
+          position:      "absolute",
+          bottom:         24,
+          left:          "50%",
+          transform:     "translateX(-50%)",
+          zIndex:         2,
+          pointerEvents: scattering ? "none" : "all",
+          animation:     scattering ? "oracle-scatter-right 0.5s ease-out forwards" : "none",
         }}>
           <RerollButton onClick={onRerollClick} />
         </div>
@@ -857,7 +926,7 @@ function CardTile({ drawn, visible, imageUrl, dimmed = false }) {
         alignItems:    "center",
         gap:            12,
         opacity:       visible ? (dimmed ? 0.5 : 1) : 0,
-        transform:     visible ? (dimmed ? "translateY(-24px)" : "translateY(0)") : "translateY(18px)",
+        transform:     visible ? (dimmed ? "translateY(-80%)" : "translateY(0)") : "translateY(18px)",
         transition:    "opacity 0.6s ease, transform 0.6s ease",
       }}
     >
@@ -935,7 +1004,7 @@ function CardTile({ drawn, visible, imageUrl, dimmed = false }) {
 
 // ─── Narrative Block ──────────────────────────────────────────────────────────
 
-function NarrativeBlock({ text, visible }) {
+function NarrativeBlock({ text, visible, scattering = false }) {
   if (!text) return null
   return (
     <div
@@ -961,6 +1030,11 @@ function NarrativeBlock({ text, visible }) {
             color:       "#EAEAEA",
             textAlign:  "left",
             margin:      i === 0 ? 0 : "1.5em 0 0",
+            animation:   scattering
+              ? (i % 2 === 0
+                  ? "oracle-scatter-left 0.5s ease-out forwards"
+                  : "oracle-scatter-right 0.5s ease-out forwards")
+              : "none",
           }}
         >
           {para}
@@ -1099,5 +1173,9 @@ addPropertyControls(OraclePortal, {
     defaultValue:    "{}",
     description:
       'JSON object mapping each card name to upright and reversed image URLs.\nExample:\n{\n  "The Fool": { "upright": "https://...", "reversed": "https://..." },\n  "The Magician": { "upright": "https://...", "reversed": "https://..." }\n}',
+  },
+  oracleImage: {
+    type:  ControlType.Image,
+    title: "Oracle Illustration",
   },
 })
