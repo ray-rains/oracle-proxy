@@ -839,7 +839,7 @@ function ReadingUI({
               justifyContent: "center",
               flexWrap:       "wrap",
               alignItems:     "flex-start",
-              marginTop:       32,
+              marginTop:       0,
               zIndex:          1,
               position:       "relative",
             }}
@@ -868,15 +868,6 @@ function ReadingUI({
       >
         <NarrativeBlock text={narrative} visible={showNarrative && !rerollCards} scattering={scattering} />
 
-        {showRerollInput && !hasRerolled && (
-          <RerollInputUI
-            value={rerollInput}
-            onChange={setRerollInput}
-            onSubmit={onRerollSubmit}
-            isLoading={rerollLoading}
-          />
-        )}
-
         {rerollCards && (
           <NarrativeBlock text={rerollNarrative} visible={showRerollNarrative} />
         )}
@@ -894,6 +885,25 @@ function ReadingUI({
           }}
         />
       </div>
+
+      {showRerollInput && !hasRerolled && (
+        <div style={{
+          position:        "fixed",
+          inset:            0,
+          backgroundColor: "rgba(0,0,0,0.92)",
+          display:         "flex",
+          alignItems:      "center",
+          justifyContent:  "center",
+          zIndex:           10,
+        }}>
+          <RerollInputUI
+            value={rerollInput}
+            onChange={setRerollInput}
+            onSubmit={onRerollSubmit}
+            isLoading={rerollLoading}
+          />
+        </div>
+      )}
 
       {showNarrative && !hasRerolled && !rerollCards && (
         <div style={{
@@ -926,7 +936,7 @@ function CardTile({ drawn, visible, imageUrl, dimmed = false }) {
         alignItems:    "center",
         gap:            12,
         opacity:       visible ? (dimmed ? 0.5 : 1) : 0,
-        transform:     visible ? (dimmed ? "translateY(-80%)" : "translateY(0)") : "translateY(18px)",
+        transform:     visible ? (dimmed ? "translateY(128px)" : "translateY(0)") : "translateY(18px)",
         transition:    "opacity 0.6s ease, transform 0.6s ease",
       }}
     >
@@ -1013,9 +1023,12 @@ function NarrativeBlock({ text, visible, scattering = false }) {
         textAlign:  "left",
         padding:    "24px 0 0",
         margin:     "0 auto",
-        opacity:    visible ? 1 : 0,
-        transform:  visible ? "translateY(0)" : "translateY(14px)",
-        transition: "opacity 1.1s ease, transform 1.1s ease",
+        opacity:       visible ? 1 : 0,
+        transform:     visible ? "translateY(0)" : "translateY(14px)",
+        transition:    "opacity 1.1s ease, transform 1.1s ease, max-height 0.8s ease",
+        maxHeight:     visible ? "2000px" : "0px",
+        overflow:      "hidden",
+        pointerEvents: visible ? "all" : "none",
       }}
     >
       {text.split("\n\n").map((para, i) => (
