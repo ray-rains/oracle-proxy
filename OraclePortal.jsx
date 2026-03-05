@@ -241,6 +241,8 @@ export function OraclePortal({ cardImages = "{}" }) {
   const [showNarrative, setShowNarrative] = useState(false)
   const [imageMap, setImageMap]           = useState({})
 
+  const [hasBeenOpened,       setHasBeenOpened]       = useState(false)
+
   const [hasRerolled,         setHasRerolled]         = useState(false)
   const [rerollCards,         setRerollCards]         = useState(null)
   const [rerollNarrative,     setRerollNarrative]     = useState("")
@@ -321,6 +323,7 @@ export function OraclePortal({ cardImages = "{}" }) {
 
   // ── Nav handlers ───────────────────────────────────────────────────────────
   const onClick = useCallback(() => {
+    setHasBeenOpened(true)
     if (locked.current) return
     locked.current = true
     setPhase("completing")
@@ -513,7 +516,7 @@ export function OraclePortal({ cardImages = "{}" }) {
         onClick={onClick}
         style={triggerStyle}
       >
-        ?????
+        {hasBeenOpened ? "The Oracle" : "?????"}
       </span>
 
       {/* Full-screen overlay */}
@@ -569,22 +572,26 @@ function CloseButton({ onClick }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        position:   "absolute",
-        top:         24,
-        right:       32,
-        background: "none",
-        border:     "none",
-        color:      hovered ? COLORS.primary : COLORS.secondary,
-        cursor:     "pointer",
-        fontSize:   "26px",
-        lineHeight:  1,
-        padding:    "6px",
-        transition: "color 0.2s ease",
-        zIndex:      1,
+        position:      "absolute",
+        top:            64,
+        left:          "50%",
+        transform:     "translateX(-50%)",
+        background:    "none",
+        border:        "none",
+        color:         hovered ? COLORS.primary : COLORS.secondary,
+        cursor:        "pointer",
+        fontFamily:    "Inter, sans-serif",
+        fontSize:       13,
+        fontWeight:     400,
+        letterSpacing: "0.08em",
+        padding:       "6px 12px",
+        transition:    "color 0.2s ease",
+        zIndex:         1,
+        whiteSpace:    "nowrap",
       }}
       aria-label="Close Oracle"
     >
-      ×
+      Turn back
     </button>
   )
 }
@@ -725,6 +732,7 @@ function ReadingUI({
         width:          "100%",
         maxWidth:        960,
         padding:        "48px 24px 0",
+        position:       "relative",
       }}
     >
       {/* Top section — fixed, no scroll */}
@@ -792,10 +800,6 @@ function ReadingUI({
       >
         <NarrativeBlock text={narrative} visible={showNarrative && !rerollCards} />
 
-        {showNarrative && !hasRerolled && !rerollCards && (
-          <RerollButton onClick={onRerollClick} />
-        )}
-
         {showRerollInput && !hasRerolled && (
           <RerollInputUI
             value={rerollInput}
@@ -814,13 +818,27 @@ function ReadingUI({
             bottom:         0,
             left:           0,
             right:          0,
-            height:         48,
-            background:    "linear-gradient(to bottom, transparent, #000000)",
+            height:         24,
+            background:    "linear-gradient(to bottom, rgba(0,0,0,0), #000000)",
             pointerEvents: "none",
+            zIndex:         1,
             flexShrink:     0,
           }}
         />
       </div>
+
+      {showNarrative && !hasRerolled && !rerollCards && (
+        <div style={{
+          position:       "absolute",
+          bottom:          24,
+          left:           "50%",
+          transform:      "translateX(-50%)",
+          zIndex:          2,
+          pointerEvents:  "all",
+        }}>
+          <RerollButton onClick={onRerollClick} />
+        </div>
+      )}
     </div>
   )
 }
