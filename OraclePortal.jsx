@@ -1095,6 +1095,11 @@ function RerollButton({ onClick }) {
 
 function RerollInputUI({ value, onChange, onSubmit, isLoading }) {
   const [btnHover, setBtnHover] = useState(false)
+  const [mounted, setMounted]   = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 20)
+    return () => clearTimeout(t)
+  }, [])
   return (
     <div style={{
       display:       "flex",
@@ -1104,6 +1109,9 @@ function RerollInputUI({ value, onChange, onSubmit, isLoading }) {
       maxWidth:       480,
       width:         "100%",
       padding:       "0 24px",
+      opacity:        mounted ? 1 : 0,
+      transform:      mounted ? "translateY(0)" : "translateY(14px)",
+      transition:    "opacity 0.6s ease, transform 0.6s ease",
     }}>
       <p style={{
         fontFamily: "'IM Fell English', serif",
@@ -1135,17 +1143,17 @@ function RerollInputUI({ value, onChange, onSubmit, isLoading }) {
             onKeyDown={(e) => e.key === "Enter" && onSubmit()}
             placeholder="Speak your question…"
             style={{
-              width:       "100%",
-              boxSizing:   "border-box",
-              background:   COLORS.inputBg,
-              border:      "none",
-              borderRadius: 24,
-              padding:     "14px 24px",
-              color:        COLORS.primary,
-              fontFamily:  "Inter, sans-serif",
-              fontSize:     15,
-              outline:     "none",
-              caretColor:   COLORS.primary,
+              width:        "100%",
+              boxSizing:    "border-box",
+              background:    COLORS.inputBg,
+              border:       "none",
+              borderRadius:  24,
+              padding:      "14px 24px",
+              color:         COLORS.primary,
+              fontFamily:   "Inter, sans-serif",
+              fontSize:      15,
+              outline:      "none",
+              caretColor:    COLORS.primary,
             }}
           />
           <button
