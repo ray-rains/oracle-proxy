@@ -58,6 +58,14 @@ export function OracleOverlay() {
     window.addEventListener("message", onMessage)
     return () => window.removeEventListener("message", onMessage)
   }, [])
+  const containerRef = useRef(null)
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const container = el.closest('[class*="container"]') || el.parentElement
+    if (!container) return
+    container.style.pointerEvents = state && state.phase !== "idle" ? "all" : "none"
+  }, [state?.phase])
   if (!state) return null
   const {
     phase,
@@ -95,19 +103,21 @@ export function OracleOverlay() {
     return (reversed ? entry.reversed : entry.upright) || null
   }
   return (
-    <div style={{
-      position:        "fixed",
-      inset:            0,
-      backgroundColor: "#000000",
-      opacity:          overlayOpacity,
-      transition:       overlayTransition,
-      pointerEvents:    isVisible ? "all" : "none",
-      zIndex:           9999,
-      display:         "flex",
-      alignItems:      "center",
-      justifyContent:  "center",
-      overflowY:       "hidden",
-    }}>
+    <div
+      ref={containerRef}
+      style={{
+        position:        "fixed",
+        inset:            0,
+        backgroundColor: "#000000",
+        opacity:          overlayOpacity,
+        transition:       overlayTransition,
+        pointerEvents:    isVisible ? "all" : "none",
+        zIndex:           9999,
+        display:         "flex",
+        alignItems:      "center",
+        justifyContent:  "center",
+        overflowY:       "hidden",
+      }}>
       {showClose && (
         <CloseButton onClick={() => dispatch("close")} />
       )}
