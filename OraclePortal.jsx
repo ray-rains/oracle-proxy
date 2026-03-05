@@ -15,6 +15,7 @@ import React, {
   useRef,
   useCallback,
 } from "react"
+import ReactDOM from "react-dom"
 import { addPropertyControls, ControlType } from "framer"
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
@@ -236,6 +237,21 @@ function injectFonts() {
   link.href =
     "https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Inter:wght@300;400;500&display=swap"
   document.head.appendChild(link)
+}
+
+function useBodyPortal() {
+  const [el] = useState(() => {
+    if (typeof document === "undefined") return null
+    const div = document.createElement("div")
+    div.style.cssText = "position:fixed;top:0;left:0;width:0;height:0;z-index:9998;"
+    return div
+  })
+  useEffect(() => {
+    if (!el) return
+    document.body.appendChild(el)
+    return () => { document.body.removeChild(el) }
+  }, [el])
+  return el
 }
 
 // ─── OraclePortal ─────────────────────────────────────────────────────────────
@@ -522,6 +538,7 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
   const showUI      = phase === "oracle" || phase === "loading"
   const showReading = (phase === "reading" || phase === "recalled") && !!cards
   const showClose   = showUI || showReading
+  const portalEl = useBodyPortal()
 
   return (
     <div style={{ position: "relative", display: "inline-block", zIndex: 10000 }}>
@@ -534,7 +551,8 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
         {hasBeenOpened ? "The Oracle" : "?????"}
       </span>
 
-      {/* Full-screen overlay */}
+      {/* Full-screen overlay — portaled to body to escape Safari stacking context */}
+      {portalEl && ReactDOM.createPortal(
       <div style={overlayStyle}>
         {/* Close */}
         {showClose && (
@@ -575,6 +593,7 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
           />
         )}
       </div>
+      , portalEl)}
     </div>
   )
 }
