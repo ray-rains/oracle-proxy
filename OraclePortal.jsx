@@ -802,79 +802,70 @@ function ReadingUI({
       {/* ── ZONE 1: CARD ROW — fixed height, never grows ── */}
       <div style={{
         flexShrink:     0,
-        width:         "100%",
-        maxWidth:       960,
-        padding:       "48px 24px 8px",
-        display:       "flex",
-        justifyContent:"center",
+        width:          "100%",
+        maxWidth:        960,
+        padding:        "48px 24px 0",
+        display:        "flex",
+        justifyContent: "center",
+        gap:             24,
       }}>
-        <div style={{
-          position:   "relative",
-          height:      NEW_W + PEEK + 72,
-          width:       cards.length * NEW_W + (cards.length - 1) * 24,
-        }}>
-          {/* Old cards — peek above new cards */}
-          {cards.map((drawn, i) => (
-            <div
-              key={"old-" + drawn.card.name}
-              style={{
+        {cards.map((drawn, i) => {
+          const isOld    = !!rerollCards
+          const cardSize = isOld ? OLD_W : NEW_W
+          return (
+            <div key={"card-" + i} style={{ position: "relative", width: NEW_W }}>
+              {/* Old card — peeks above new card when reroll active */}
+              <div style={{
                 position:   "absolute",
-                left:        i * (NEW_W + 24) + (NEW_W - OLD_W) / 2,
-                bottom:      rerollCards ? NEW_W - PEEK : 0,
-                width:       OLD_W,
-                height:      OLD_W,
-                opacity:     visibleCards > i ? (rerollCards ? 0.5 : 1) : 0,
-                transition:  "opacity 0.6s ease, bottom 0.6s ease",
+                top:         isOld ? -PEEK : 0,
+                left:        isOld ? (NEW_W - OLD_W) / 2 : 0,
+                opacity:     visibleCards > i ? (isOld ? 0.5 : 1) : 0,
+                transition:  "opacity 0.6s ease, top 0.6s ease",
                 zIndex:      2,
-              }}
-            >
-              <CardImage
-                drawn={drawn}
-                imageUrl={getImageUrl(drawn.card, drawn.reversed)}
-                size={rerollCards ? OLD_W : NEW_W}
-                showLabels={!rerollCards}
-              />
-            </div>
-          ))}
-          {/* Reroll cards — render behind old cards */}
-          {rerollCards && cards.map((_, i) => (
-            <div
-              key={"new-" + i}
-              style={{
-                position:   "absolute",
-                left:        i * (NEW_W + 24),
-                bottom:      0,
-                width:       NEW_W,
-                height:      NEW_W,
-                opacity:     rerollVisibleCards > i ? 1 : 0,
-                transform:   rerollVisibleCards > i ? "translateY(0)" : "translateY(18px)",
-                transition:  "opacity 0.65s ease, transform 0.65s ease",
-                zIndex:      1,
-              }}
-            >
-              {rerollCards[i] && (
+              }}>
                 <CardImage
-                  drawn={rerollCards[i]}
-                  imageUrl={getImageUrl(rerollCards[i].card, rerollCards[i].reversed)}
+                  drawn={drawn}
+                  imageUrl={getImageUrl(drawn.card, drawn.reversed)}
+                  size={cardSize}
+                  showLabels={!isOld}
+                />
+              </div>
+              {/* New card — renders in flow, defines column height */}
+              {rerollCards && rerollCards[i] && (
+                <div style={{
+                  opacity:    rerollVisibleCards > i ? 1 : 0,
+                  transform:  rerollVisibleCards > i ? "translateY(0)" : "translateY(18px)",
+                  transition: "opacity 0.65s ease, transform 0.65s ease",
+                  zIndex:     1,
+                }}>
+                  <CardImage
+                    drawn={rerollCards[i]}
+                    imageUrl={getImageUrl(rerollCards[i].card, rerollCards[i].reversed)}
+                    size={NEW_W}
+                    showLabels={true}
+                  />
+                </div>
+              )}
+              {/* Spacer to hold column height when no reroll cards yet */}
+              {!rerollCards && (
+                <CardImage
+                  drawn={drawn}
+                  imageUrl={getImageUrl(drawn.card, drawn.reversed)}
                   size={NEW_W}
                   showLabels={true}
                 />
               )}
             </div>
-          ))}
-        </div>
+          )
+        })}
       </div>
       {/* ── SEPARATOR ── */}
       <div style={{
         flexShrink: 0,
         width:      "100%",
-        height:      16,
-      }} />
-      <div style={{
-        flexShrink: 0,
-        width:      "100%",
         height:      1,
         background: "#2A2A2A",
+        marginTop:   16,
       }} />
       {/* ── ZONE 2: NARRATIVE SCROLL BOX — fills remaining space above button ── */}
       <div style={{
