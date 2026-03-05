@@ -788,8 +788,8 @@ function ReadingUI({
   scattering,
 }) {
   const NEW_W = 120
-  const OLD_W = Math.round(NEW_W * 0.7)  // 84px
-  const PEEK  = 16  // px old card peeks above new card
+  const OLD_W = Math.round(NEW_W * 0.7)
+  const PEEK  = 16
   return (
     <div style={{
       position:      "fixed",
@@ -797,8 +797,9 @@ function ReadingUI({
       display:       "flex",
       flexDirection: "column",
       alignItems:    "center",
+      overflow:      "hidden",
     }}>
-      {/* ── CARD ROW ── */}
+      {/* ── ZONE 1: CARD ROW — fixed height, never grows ── */}
       <div style={{
         flexShrink:     0,
         width:         "100%",
@@ -808,11 +809,9 @@ function ReadingUI({
         justifyContent:"center",
       }}>
         <div style={{
-          position: "relative",
-          height:    NEW_W + PEEK,
-          display:  "flex",
-          gap:       24,
-          alignItems:"flex-end",
+          position:   "relative",
+          height:      NEW_W + PEEK,
+          width:       cards.length * NEW_W + (cards.length - 1) * 24,
         }}>
           {/* Old cards — peek above new cards */}
           {cards.map((drawn, i) => (
@@ -820,14 +819,13 @@ function ReadingUI({
               key={"old-" + drawn.card.name}
               style={{
                 position:   "absolute",
-                left:        i * (NEW_W + 24),
-                bottom:      NEW_W,  // sits above new cards
+                left:        i * (NEW_W + 24) + (NEW_W - OLD_W) / 2,
+                bottom:      rerollCards ? NEW_W - PEEK : 0,
                 width:       OLD_W,
                 height:      OLD_W,
-                marginLeft:  (NEW_W - OLD_W) / 2,  // center over new card
                 opacity:     visibleCards > i ? (rerollCards ? 0.5 : 1) : 0,
                 transition:  "opacity 0.6s ease, bottom 0.6s ease",
-                zIndex:      rerollCards ? 2 : 1,
+                zIndex:      2,
               }}
             >
               <CardImage
@@ -838,32 +836,20 @@ function ReadingUI({
               />
             </div>
           ))}
-          {/* New cards — render in normal flow */}
-          {cards.map((drawn, i) => (
-            <div
-              key={"slot-" + i}
-              style={{
-                width:   NEW_W,
-                height:  NEW_W,
-                opacity: rerollCards ? 0 : (visibleCards > i ? 1 : 0),
-                transition: "opacity 0.6s ease",
-              }}
-            />
-          ))}
-          {/* Reroll cards */}
+          {/* Reroll cards — render behind old cards */}
           {rerollCards && cards.map((_, i) => (
             <div
               key={"new-" + i}
               style={{
-                position:  "absolute",
-                left:       i * (NEW_W + 24),
-                bottom:     0,
-                width:      NEW_W,
-                height:     NEW_W,
-                opacity:    rerollVisibleCards > i ? 1 : 0,
-                transform:  rerollVisibleCards > i ? "translateY(0)" : "translateY(18px)",
-                transition: "opacity 0.65s ease, transform 0.65s ease",
-                zIndex:     1,
+                position:   "absolute",
+                left:        i * (NEW_W + 24),
+                bottom:      0,
+                width:       NEW_W,
+                height:      NEW_W,
+                opacity:     rerollVisibleCards > i ? 1 : 0,
+                transform:   rerollVisibleCards > i ? "translateY(0)" : "translateY(18px)",
+                transition:  "opacity 0.65s ease, transform 0.65s ease",
+                zIndex:      1,
               }}
             >
               {rerollCards[i] && (
@@ -878,23 +864,21 @@ function ReadingUI({
           ))}
         </div>
       </div>
-      {/* ── NARRATIVE SCROLL BOX ── */}
+      {/* ── ZONE 2: NARRATIVE SCROLL BOX — fills remaining space above button ── */}
       <div style={{
         flex:       1,
-        width:     "100%",
-        maxWidth:   960,
-        overflowY: "auto",
-        padding:   "0 24px",
-        position:  "relative",
-        borderTop: "1px solid #2A2A2A",
-        paddingBottom: 80,
+        width:      "100%",
+        maxWidth:    960,
+        overflowY:  "auto",
+        padding:    "0 24px",
+        position:   "relative",
+        borderTop:  "1px solid #2A2A2A",
+        minHeight:   0,
       }}>
-        {/* Active narrative — fades out when reroll narrative is ready */}
         <NarrativeBlock
           text={narrative}
           visible={showNarrative && !showRerollNarrative}
         />
-        {/* Reroll narrative — fades in */}
         {rerollNarrative ? (
           <NarrativeBlock
             text={rerollNarrative}
@@ -903,31 +887,34 @@ function ReadingUI({
         ) : null}
         {/* Fade gradient */}
         <div style={{
-          position:   "sticky",
-          bottom:      0,
-          left:        0,
-          right:       0,
-          height:      48,
-          background: "linear-gradient(to bottom, rgba(0,0,0,0), #000000)",
+          position:      "sticky",
+          bottom:         0,
+          left:           0,
+          right:          0,
+          height:         48,
+          background:    "linear-gradient(to bottom, rgba(0,0,0,0), #000000)",
           pointerEvents: "none",
-          zIndex:      1,
+          zIndex:         1,
         }} />
       </div>
-      {/* ── PINNED BUTTON ── */}
-      {showNarrative && !hasRerolled && !rerollCards && (
-        <div style={{
-          position:       "absolute",
-          bottom:          24,
-          left:           "50%",
-          transform:      "translateX(-50%)",
-          zIndex:          3,
-          pointerEvents:  "all",
-          opacity:        scattering ? 0 : 1,
-          transition:     "opacity 0.4s ease",
-        }}>
-          <RerollButton onClick={onRerollClick} />
-        </div>
-      )}
+      {/* ── ZONE 3: BUTTON ROW — fixed height, always visible ── */}
+      <div style={{
+        flexShrink:     0,
+        height:          72,
+        width:          "100%",
+        display:        "flex",
+        alignItems:     "center",
+        justifyContent: "center",
+      }}>
+        {showNarrative && !hasRerolled && !rerollCards && (
+          <div style={{
+            opacity:    scattering ? 0 : 1,
+            transition: "opacity 0.4s ease",
+          }}>
+            <RerollButton onClick={onRerollClick} />
+          </div>
+        )}
+      </div>
       {/* ── REROLL INPUT MODAL ── */}
       {showRerollInput && (
         <div style={{
