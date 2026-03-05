@@ -810,7 +810,7 @@ function ReadingUI({
       }}>
         <div style={{
           position:   "relative",
-          height:      NEW_W + PEEK + 48,
+          height:      NEW_W + PEEK + 72,
           width:       cards.length * NEW_W + (cards.length - 1) * 24,
         }}>
           {/* Old cards — peek above new cards */}
@@ -866,11 +866,15 @@ function ReadingUI({
       </div>
       {/* ── SEPARATOR ── */}
       <div style={{
-        flexShrink:  0,
-        width:       "100%",
-        height:       1,
-        background:  "#2A2A2A",
-        marginTop:    8,
+        flexShrink: 0,
+        width:      "100%",
+        height:      16,
+      }} />
+      <div style={{
+        flexShrink: 0,
+        width:      "100%",
+        height:      1,
+        background: "#2A2A2A",
       }} />
       {/* ── ZONE 2: NARRATIVE SCROLL BOX — fills remaining space above button ── */}
       <div style={{
