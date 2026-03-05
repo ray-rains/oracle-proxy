@@ -243,7 +243,7 @@ function useBodyPortal() {
   const [el] = useState(() => {
     if (typeof document === "undefined") return null
     const div = document.createElement("div")
-    div.style.cssText = "position:fixed;top:0;left:0;width:0;height:0;z-index:9998;"
+    div.style.cssText = "position:fixed;top:0;left:0;width:0;height:0;z-index:9998;pointer-events:none;"
     return div
   })
   useEffect(() => {
