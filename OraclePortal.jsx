@@ -590,7 +590,7 @@ function CloseButton({ onClick }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         position:      "absolute",
-        top:            24,
+        top:            16,
         left:          "50%",
         transform:     "translateX(-50%)",
         background:    "none",
@@ -804,7 +804,7 @@ function ReadingUI({
         flexShrink:     0,
         width:         "100%",
         maxWidth:       960,
-        padding:       "80px 24px 24px",
+        padding:       "80px 24px 16px",
         display:       "flex",
         justifyContent:"center",
       }}>
@@ -864,6 +864,14 @@ function ReadingUI({
           ))}
         </div>
       </div>
+      {/* ── SEPARATOR ── */}
+      <div style={{
+        flexShrink:  0,
+        width:       "100%",
+        height:       1,
+        background:  "#2A2A2A",
+        marginTop:    8,
+      }} />
       {/* ── ZONE 2: NARRATIVE SCROLL BOX — fills remaining space above button ── */}
       <div style={{
         flex:       1,
@@ -872,19 +880,12 @@ function ReadingUI({
         overflowY:  "auto",
         padding:    "0 24px",
         position:   "relative",
-        borderTop:  "1px solid #2A2A2A",
         minHeight:   0,
       }}>
         <NarrativeBlock
-          text={narrative}
-          visible={showNarrative && !showRerollNarrative}
+          text={showRerollNarrative && rerollNarrative ? rerollNarrative : narrative}
+          visible={showNarrative || showRerollNarrative}
         />
-        {rerollNarrative ? (
-          <NarrativeBlock
-            text={rerollNarrative}
-            visible={showRerollNarrative}
-          />
-        ) : null}
         {/* Fade gradient */}
         <div style={{
           position:      "sticky",
