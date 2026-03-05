@@ -71,8 +71,7 @@ const EASTER_EGG_INDICES = [18, 9, 10]
 
 const SESSION_KEY        = "oracle_reading"
 const SESSION_REROLL_KEY = "oracle_reroll"
-const PROXY_URL   =
-  "https://oracle-proxy-63hohlnl9-ray-rains-projects.vercel.app/api/reading"
+const PROXY_URL   =   "https://oracle-proxy.vercel.app/api/reading"
 
 // ─── Sentiment ────────────────────────────────────────────────────────────────
 
@@ -498,6 +497,8 @@ export function OraclePortal({ cardImages = "{}" }) {
     transition:   "color 0.4s ease, text-shadow 0.4s ease",
     userSelect:   "none",
     WebkitUserSelect: "none",
+    position:     "relative",
+    zIndex:        10001,
   }
 
   const showUI      = phase === "oracle" || phase === "loading"
@@ -786,6 +787,7 @@ function ReadingUI({
           flexGrow:      1,
           paddingBottom: 48,
           borderTop:    "1px solid #2A2A2A",
+          position:     "relative",
         }}
       >
         <NarrativeBlock text={narrative} visible={showNarrative && !rerollCards} />
@@ -806,6 +808,18 @@ function ReadingUI({
         {rerollCards && (
           <NarrativeBlock text={rerollNarrative} visible={showRerollNarrative} />
         )}
+        <div
+          style={{
+            position:      "sticky",
+            bottom:         0,
+            left:           0,
+            right:          0,
+            height:         48,
+            background:    "linear-gradient(to bottom, transparent, #000000)",
+            pointerEvents: "none",
+            flexShrink:     0,
+          }}
+        />
       </div>
     </div>
   )
@@ -910,7 +924,8 @@ function NarrativeBlock({ text, visible }) {
       style={{
         maxWidth:   680,
         textAlign:  "left",
-        padding:    "0 24px",
+        padding:    "24px 0 0",
+        margin:     "0 auto",
         opacity:    visible ? 1 : 0,
         transform:  visible ? "translateY(0)" : "translateY(14px)",
         transition: "opacity 1.1s ease, transform 1.1s ease",
@@ -922,10 +937,10 @@ function NarrativeBlock({ text, visible }) {
           style={{
             fontFamily: "Inter, sans-serif",
             fontStyle:  "normal",
-            fontWeight:  500,
-            fontSize:   "12pt",
+            fontWeight:  400,
+            fontSize:   "9pt",
             lineHeight:  1.5,
-            color:       COLORS.primary,
+            color:       "#EAEAEA",
             textAlign:  "left",
             margin:      i === 0 ? 0 : "1.5em 0 0",
           }}
