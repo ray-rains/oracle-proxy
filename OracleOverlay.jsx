@@ -168,7 +168,7 @@ function CloseButton({ onClick }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         position:      "fixed",
-        bottom:         16,
+        bottom:         8,
         left:          "50%",
         transform:     "translateX(-50%)",
         background:    "none",
@@ -470,11 +470,12 @@ function ReadingUI({
       {/* ── ZONE 3: BUTTON ROW — fixed height, always visible ── */}
       <div style={{
         flexShrink:     0,
-        height:          72,
+        height:          96,
         width:          "100%",
         display:        "flex",
         alignItems:     "center",
         justifyContent: "center",
+        paddingBottom:   40,
       }}>
         {showNarrative && !hasRerolled && !rerollCards && (
           <div style={{
