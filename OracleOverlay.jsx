@@ -394,7 +394,7 @@ function ReadingUI({
                 left:        isOld ? (NEW_W - OLD_W) / 2 : 0,
                 opacity:     visibleCards > i ? (isOld ? 0.5 : 1) : 0,
                 transition:  "opacity 0.6s ease, top 0.6s ease",
-                zIndex:      2,
+                zIndex:      1,
               }}>
                 <CardImage
                   drawn={drawn}
@@ -409,7 +409,7 @@ function ReadingUI({
                   opacity:    rerollVisibleCards > i ? 1 : 0,
                   transform:  rerollVisibleCards > i ? "translateY(0)" : "translateY(18px)",
                   transition: "opacity 0.65s ease, transform 0.65s ease",
-                  zIndex:     1,
+                  zIndex:     2,
                 }}>
                   <CardImage
                     drawn={rerollCards[i]}
