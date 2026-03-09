@@ -333,7 +333,7 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "
                 transition:  "background 0.25s ease, color 0.25s ease",
               }}
             >
-              The cards await
+              Your fate await
             </button>
           </>
         )}
