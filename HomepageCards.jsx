@@ -19,13 +19,18 @@ export function HomepageCards({ imageMap: imageMapRaw = "{}", size = 120 }) {
   }, [])
 
   useEffect(() => {
-    function handleMessage(e) {
-      if (e.data?.type === "oracle:readingComplete" && Array.isArray(e.data.cards) && e.data.cards.length === 3) {
+    function onMessage(e) {
+      if (!e.data || e.data.type !== "oracle:readingComplete") return
+      if (Array.isArray(e.data.cards) && e.data.cards.length === 3) {
         setCardNames(e.data.cards)
       }
     }
-    window.addEventListener("message", handleMessage)
-    return () => window.removeEventListener("message", handleMessage)
+    window.addEventListener("message", onMessage)
+    try { window.parent.addEventListener("message", onMessage) } catch {}
+    return () => {
+      window.removeEventListener("message", onMessage)
+      try { window.parent.removeEventListener("message", onMessage) } catch {}
+    }
   }, [])
 
   let imageMap = {}
