@@ -316,6 +316,7 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
       scattering,
       imageMap,
       oracleImage,
+      rerollInput,
     }
     try {
       window.parent.postMessage({ type: "oracle:state", detail: payload }, "*")
@@ -325,7 +326,7 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
     phase, userInput, cards, narrative, visibleCards, showNarrative,
     hasBeenOpened, hasRerolled, rerollCards, rerollNarrative,
     rerollVisibleCards, showRerollNarrative, showRerollInput,
-    rerollLoading, scattering, imageMap, oracleImage,
+    rerollLoading, scattering, imageMap, oracleImage, rerollInput,
   ])
   // ── Listen for actions from OracleOverlay ─────────────────────────────────
   useEffect(() => {
