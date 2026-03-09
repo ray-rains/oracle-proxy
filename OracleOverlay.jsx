@@ -107,7 +107,10 @@ export function OracleOverlay() {
       ref={containerRef}
       style={{
         position:        "fixed",
-        inset:            0,
+        top:              0,
+        left:             0,
+        right:            0,
+        bottom:           0,
         backgroundColor: "#000000",
         opacity:          overlayOpacity,
         transition:       overlayTransition,
@@ -211,15 +214,13 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "
   return (
     <div
       style={{
-        position: "relative",
+        position: "fixed",
+        top:      0,
+        left:     0,
         width:    "100%",
         height:   "100vh",
-        overflow: "hidden",
-        ...fadeStyle,
       }}
     >
-      <div style={{ height: 24 }} />
-
       {/* Oracle illustration */}
       <div style={{
         position:  "absolute",
@@ -228,7 +229,7 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "
         transform: "translateX(-50%)",
         width:     "100%",
         maxWidth:   560,
-        height:    "100%",
+        height:    "75%",
         overflow:  "hidden",
         opacity:    mounted ? 1 : 0,
         transition: "opacity 500ms ease-out",
