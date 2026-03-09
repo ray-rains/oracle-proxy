@@ -333,7 +333,7 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "
                 transition:  "background 0.25s ease, color 0.25s ease",
               }}
             >
-              Your fate await
+              Your fate awaits
             </button>
           </>
         )}
@@ -724,7 +724,7 @@ function RerollInputUI({ value, onChange, onSubmit, isLoading }) {
               transition:    "background 0.25s ease, color 0.25s ease",
             }}
           >
-            The cards await
+            Your fate awaits
           </button>
         </>
       )}
