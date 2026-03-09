@@ -276,7 +276,7 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "
             lineHeight:   1.35,
           }}
         >
-          What do you seek, traveller?
+          What would you ask of the cards, traveller?
         </h1>
 
         {isLoading ? (
