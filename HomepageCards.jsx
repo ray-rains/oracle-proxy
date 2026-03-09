@@ -8,7 +8,7 @@ export function HomepageCards({ imageMap: imageMapRaw = "{}", size = 120 }) {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("oracle:lastReading")
+      const raw = sessionStorage.getItem("oracle:lastReading")
       if (raw) {
         const parsed = JSON.parse(raw)
         if (Array.isArray(parsed) && parsed.length === 3) {
@@ -16,6 +16,16 @@ export function HomepageCards({ imageMap: imageMapRaw = "{}", size = 120 }) {
         }
       }
     } catch {}
+  }, [])
+
+  useEffect(() => {
+    function handleMessage(e) {
+      if (e.data?.type === "oracle:readingComplete" && Array.isArray(e.data.cards) && e.data.cards.length === 3) {
+        setCardNames(e.data.cards)
+      }
+    }
+    window.addEventListener("message", handleMessage)
+    return () => window.removeEventListener("message", handleMessage)
   }, [])
 
   let imageMap = {}

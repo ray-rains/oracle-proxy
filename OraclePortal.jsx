@@ -438,7 +438,8 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
       saveStored({ input: q, cards: drawn, narrative: fallback })
     }
     setPhase("reading")
-    localStorage.setItem("oracle:lastReading", JSON.stringify(drawn.map(c => c.card.name)))
+    sessionStorage.setItem("oracle:lastReading", JSON.stringify(drawn.map(c => c.card.name)))
+    window.postMessage({ type: "oracle:readingComplete", cards: drawn.map(c => c.card.name) }, "*")
     setVisibleCards(0)
     setShowNarrative(false)
     later(() => setVisibleCards(1), 120)
