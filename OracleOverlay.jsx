@@ -116,9 +116,6 @@ export function OracleOverlay() {
         transition:       overlayTransition,
         pointerEvents:    isVisible ? "all" : "none",
         zIndex:           9999,
-        display:         "flex",
-        alignItems:      "center",
-        justifyContent:  "center",
         overflowY:       "hidden",
       }}>
       {showClose && (
@@ -239,10 +236,11 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "
             src={oracleImage}
             alt="The Oracle"
             style={{
-              width:      "100%",
-              height:     "100%",
-              objectFit:  "cover",
-              display:    "block",
+              width:           "100%",
+              height:          "100%",
+              objectFit:       "contain",
+              objectPosition:  "top center",
+              display:         "block",
             }}
           />
         ) : null}
