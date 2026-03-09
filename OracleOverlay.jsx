@@ -361,8 +361,6 @@ function ReadingUI({
   scattering,
 }) {
   const NEW_W = 120
-  const OLD_W = Math.round(NEW_W * 0.7)
-  const PEEK  = 16
   return (
     <div style={{
       position:      "fixed",
@@ -382,55 +380,24 @@ function ReadingUI({
         justifyContent: "center",
         gap:             24,
       }}>
-        {cards.map((drawn, i) => {
-          const isOld    = !!rerollCards
-          const cardSize = isOld ? OLD_W : NEW_W
+        {(rerollCards || cards).map((drawn, i) => {
+          const displayCards   = rerollCards || cards
+          const displayVisible = rerollCards ? rerollVisibleCards : visibleCards
           return (
-            <div key={"card-" + i} style={{ position: "relative", width: NEW_W }}>
-              {/* Old card — peeks above new card when reroll active */}
-              <div style={{
-                position:   "absolute",
-                top:         isOld ? -PEEK : 0,
-                left:        isOld ? (NEW_W - OLD_W) / 2 : 0,
-                opacity:     visibleCards > i ? (isOld ? 0.5 : 1) : 0,
-                transition:  "opacity 0.6s ease, top 0.6s ease",
-                zIndex:      1,
-              }}>
-                <CardImage
-                  drawn={drawn}
-                  imageUrl={getImageUrl(drawn.card, drawn.reversed)}
-                  size={cardSize}
-                  showLabels={!isOld}
-                />
-              </div>
-              {/* New card — renders in flow, defines column height */}
-              {rerollCards && rerollCards[i] && (
-                <div style={{
-                  position:   "absolute",
-                  top:         0,
-                  left:        0,
-                  opacity:    rerollVisibleCards > i ? 1 : 0,
-                  transform:  rerollVisibleCards > i ? "translateY(0)" : "translateY(18px)",
-                  transition: "opacity 0.65s ease, transform 0.65s ease",
-                  zIndex:     2,
-                }}>
-                  <CardImage
-                    drawn={rerollCards[i]}
-                    imageUrl={getImageUrl(rerollCards[i].card, rerollCards[i].reversed)}
-                    size={NEW_W}
-                    showLabels={true}
-                  />
-                </div>
-              )}
-              {/* Spacer to hold column height when no reroll cards yet */}
-              {!rerollCards && (
-                <CardImage
-                  drawn={drawn}
-                  imageUrl={getImageUrl(drawn.card, drawn.reversed)}
-                  size={NEW_W}
-                  showLabels={true}
-                />
-              )}
+            <div
+              key={"card-" + i}
+              style={{
+                opacity:    displayVisible > i ? 1 : 0,
+                transform:  displayVisible > i ? "translateY(0)" : "translateY(18px)",
+                transition: "opacity 0.65s ease, transform 0.65s ease",
+              }}
+            >
+              <CardImage
+                drawn={displayCards[i]}
+                imageUrl={getImageUrl(displayCards[i].card, displayCards[i].reversed)}
+                size={120}
+                showLabels={true}
+              />
             </div>
           )
         })}
