@@ -211,14 +211,10 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "
   return (
     <div
       style={{
-        display:        "flex",
-        flexDirection:  "column",
-        alignItems:     "center",
-        gap:             0,
-        height:         "100vh",
-        justifyContent: "space-between",
-        width:          "100%",
-        maxWidth:        560,
+        position: "relative",
+        width:    "100%",
+        height:   "100vh",
+        overflow: "hidden",
         ...fadeStyle,
       }}
     >
@@ -226,12 +222,15 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "
 
       {/* Oracle illustration */}
       <div style={{
-        position:   "relative",
-        flexGrow:    1,
-        width:      "100%",
-        maxWidth:    560,
-        overflow:   "hidden",
-        opacity:     mounted ? 1 : 0,
+        position:  "absolute",
+        top:        0,
+        left:      "50%",
+        transform: "translateX(-50%)",
+        width:     "100%",
+        maxWidth:   560,
+        height:    "100%",
+        overflow:  "hidden",
+        opacity:    mounted ? 1 : 0,
         transition: "opacity 500ms ease-out",
       }}>
         {oracleImage ? (
@@ -259,12 +258,17 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "
 
       {/* Input section */}
       <div style={{
+        position:      "absolute",
+        bottom:         48,
+        left:          "50%",
+        transform:     "translateX(-50%)",
+        width:         "100%",
+        maxWidth:       560,
+        padding:       "0 24px",
         display:       "flex",
         flexDirection: "column",
         alignItems:    "center",
-        gap:            32,
-        width:         "100%",
-        padding:       "0 24px 48px",
+        gap:            24,
       }}>
         <h1
           style={{
