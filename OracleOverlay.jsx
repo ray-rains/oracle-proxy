@@ -378,7 +378,10 @@ function ReadingUI({
         padding:        "48px 24px 0",
         display:        "flex",
         justifyContent: "center",
+        alignItems:     "flex-start",
         gap:             24,
+        height:          280,
+        overflow:       "hidden",
       }}>
         {(rerollCards || cards).map((drawn, i) => {
           const displayCards   = rerollCards || cards
