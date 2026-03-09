@@ -386,12 +386,12 @@ function ReadingUI({
         height:          280,
         overflow:       "hidden",
       }}>
-        {(rerollCards || cards).map((drawn, i) => {
+        {(() => {
           const displayCards   = rerollCards || cards
           const displayVisible = rerollCards ? rerollVisibleCards : visibleCards
-          return (
+          return displayCards.map((drawn, i) => (
             <div
-              key={"card-" + i}
+              key={displayCards[i].card.name + "-" + i}
               style={{
                 opacity:    displayVisible > i ? 1 : 0,
                 transform:  displayVisible > i ? "translateY(0)" : "translateY(18px)",
@@ -405,8 +405,8 @@ function ReadingUI({
                 showLabels={true}
               />
             </div>
-          )
-        })}
+          ))
+        })()}
       </div>
       {/* ── SEPARATOR ── */}
       <div style={{
