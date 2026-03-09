@@ -221,12 +221,12 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "
       {/* Oracle illustration */}
       <div style={{
         position:  "absolute",
-        top:        0,
+        top:        48,
         left:      "50%",
         transform: "translateX(-50%)",
         width:     "100%",
         maxWidth:   560,
-        height:    "75%",
+        bottom:     200,
         overflow:  "hidden",
         opacity:    mounted ? 1 : 0,
         transition: "opacity 500ms ease-out",
