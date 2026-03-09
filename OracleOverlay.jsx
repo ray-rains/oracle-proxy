@@ -406,6 +406,9 @@ function ReadingUI({
               {/* New card — renders in flow, defines column height */}
               {rerollCards && rerollCards[i] && (
                 <div style={{
+                  position:   "absolute",
+                  top:         0,
+                  left:        0,
                   opacity:    rerollVisibleCards > i ? 1 : 0,
                   transform:  rerollVisibleCards > i ? "translateY(0)" : "translateY(18px)",
                   transition: "opacity 0.65s ease, transform 0.65s ease",
