@@ -209,15 +209,7 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "
   }
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top:      0,
-        left:     0,
-        width:    "100%",
-        height:   "100vh",
-      }}
-    >
+    <>
       {/* Oracle illustration */}
       <div style={{
         position:  "absolute",
@@ -226,7 +218,7 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "
         transform: "translateX(-50%)",
         width:     "100%",
         maxWidth:   560,
-        bottom:     200,
+        bottom:     220,
         overflow:  "hidden",
         opacity:    mounted ? 1 : 0,
         transition: "opacity 500ms ease-out",
@@ -343,7 +335,7 @@ function InputUI({ userInput, setUserInput, onSubmit, isLoading, oracleImage = "
           </>
         )}
       </div>
-    </div>
+    </>
   )
 }
 
