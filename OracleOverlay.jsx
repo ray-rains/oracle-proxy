@@ -119,7 +119,10 @@ export function OracleOverlay() {
         overflowY:       "hidden",
       }}>
       {showClose && (
-        <CloseButton onClick={() => dispatch("close")} />
+        <CloseButton
+          onClick={() => dispatch("close")}
+          label={showReading ? "On towards destiny" : "Turn back"}
+        />
       )}
       {showUI && (
         <InputUI
@@ -159,7 +162,7 @@ addPropertyControls(OracleOverlay, {})
 
 // ─── Close Button ─────────────────────────────────────────────────────────────
 
-function CloseButton({ onClick }) {
+function CloseButton({ onClick, label = "Turn back" }) {
   const [hovered, setHovered] = useState(false)
   return (
     <button
@@ -186,7 +189,7 @@ function CloseButton({ onClick }) {
       }}
       aria-label="Close Oracle"
     >
-      Turn back
+      {label}
     </button>
   )
 }
