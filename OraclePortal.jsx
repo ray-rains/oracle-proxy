@@ -242,7 +242,10 @@ function injectFonts() {
 
 export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
   const [phase, setPhase]                 = useState(
-    () => sessionStorage.getItem("oracle:hasSeenOracle") ? "idle" : "oracle"
+    () => {
+      if (typeof window === "undefined") return "idle"
+      return sessionStorage.getItem("oracle:hasSeenOracle") ? "idle" : "oracle"
+    }
   )
   const [userInput, setUserInput]         = useState("")
   const [cards, setCards]                 = useState(null)
