@@ -271,6 +271,12 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
   }
   // ── Boot ───────────────────────────────────────────────────────────────────
   useEffect(() => {
+    const hasSeenOracle = sessionStorage.getItem("oracle:hasSeenOracle")
+    if (!hasSeenOracle) {
+      setPhase("oracle")
+    }
+  }, [])
+  useEffect(() => {
     injectFonts()
     injectKeyframes()
     try {
@@ -357,6 +363,7 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
   const onClose = useCallback(() => {
     clearTimers()
     locked.current = false
+    sessionStorage.setItem("oracle:hasSeenOracle", "true")
     setPhase("idle")
     setUserInput("")
     setCards(null)
