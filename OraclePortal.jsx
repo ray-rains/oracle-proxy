@@ -241,12 +241,7 @@ function injectFonts() {
 // ─── OraclePortal ─────────────────────────────────────────────────────────────
 
 export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
-  const [phase, setPhase]                 = useState(
-    () => {
-      if (typeof window === "undefined") return "idle"
-      return sessionStorage.getItem("oracle:hasSeenOracle") ? "idle" : "oracle"
-    }
-  )
+  const [phase, setPhase] = useState("idle")
   const [userInput, setUserInput]         = useState("")
   const [cards, setCards]                 = useState(null)
   const [narrative, setNarrative]         = useState("")
@@ -362,7 +357,6 @@ export function OraclePortal({ cardImages = "{}", oracleImage = "" }) {
   const onClose = useCallback(() => {
     clearTimers()
     locked.current = false
-    sessionStorage.setItem("oracle:hasSeenOracle", "true")
     setPhase("idle")
     setUserInput("")
     setCards(null)
