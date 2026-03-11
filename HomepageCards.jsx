@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { addPropertyControls, ControlType } from "framer"
 
-const DEFAULT_CARDS = ["The Moon", "The Hermit", "Wheel of Fortune"]
+const DEFAULT_CARDS = ["The Eye", "The Eye", "The Eye"]
 
 export function HomepageCards({ imageMap: imageMapRaw = "{}", size = 120 }) {
   const [cardNames, setCardNames] = useState(DEFAULT_CARDS)
